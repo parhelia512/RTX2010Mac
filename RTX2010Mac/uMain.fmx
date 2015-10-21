@@ -8,6 +8,7 @@ object frm_Main: Tfrm_Main
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop, iPhone, iPad]
+  ShowFullScreenIcon = True
   OnCreate = FormCreate
   OnClose = FormClose
   DesignerMasterStyle = 1
@@ -57,6 +58,45 @@ object frm_Main: Tfrm_Main
     Size.Height = 524.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 3
+    object tbc1: TTabControl
+      Align = Client
+      Size.Width = 248.000000000000000000
+      Size.Height = 435.000000000000000000
+      Size.PlatformDefault = False
+      TabIndex = 0
+      TabOrder = 0
+      TabPosition = PlatformDefault
+      object TabItem1: TTabItem
+        CustomIcon = <
+          item
+          end>
+        IsSelected = True
+        Size.Width = 72.000000000000000000
+        Size.Height = 26.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'tabitemcustom'
+        TabOrder = 0
+        Text = 'TabItem1'
+      end
+      object TabItem2: TTabItem
+        CustomIcon = <
+          item
+          end>
+        IsSelected = False
+        Size.Width = 74.000000000000000000
+        Size.Height = 26.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'TabItem2'
+      end
+    end
+    object lyt1: TLayout
+      Align = Top
+      Size.Width = 248.000000000000000000
+      Size.Height = 89.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+    end
   end
   object lyt3: TLayout
     Align = Client

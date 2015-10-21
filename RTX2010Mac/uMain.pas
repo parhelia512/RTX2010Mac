@@ -19,7 +19,7 @@ uses
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.TreeView, FMX.Layouts, FMX.Edit, FMX.Objects, FMX.Effects,
   FMX.Controls.Presentation, FMX.Menus, System.Actions, FMX.ActnList,
-  FMX.ScrollBox, FMX.Memo;
+  FMX.ScrollBox, FMX.Memo, FMX.TabControl;
 
 type
   Tfrm_Main = class(TForm)
@@ -43,6 +43,10 @@ type
     pnl1: TPanel;
     pnl2: TPanel;
     btn_Send: TButton;
+    tbc1: TTabControl;
+    lyt1: TLayout;
+    TabItem1: TTabItem;
+    TabItem2: TTabItem;
     procedure act_ExitAppExecute(Sender: TObject);
     procedure act_AboutExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
