@@ -1,0 +1,142 @@
+object frm_Main: Tfrm_Main
+  Left = 0
+  Top = 0
+  Caption = 'RTX2010 for Mac'
+  ClientHeight = 524
+  ClientWidth = 836
+  Position = ScreenCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop, iPhone, iPad]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  DesignerMasterStyle = 1
+  object mm_Main: TMainMenu
+    Left = 408
+    Top = 120
+    object MenuItem1: TMenuItem
+      Text = 'RTX2010'
+      object MenuItem8: TMenuItem
+        Action = act_About
+        Enabled = True
+        Locked = True
+        ImageIndex = -1
+      end
+      object MenuItem9: TMenuItem
+        Locked = True
+        Text = '-'
+      end
+      object MenuItem10: TMenuItem
+        Action = act_Setting
+        Enabled = True
+        Locked = True
+        ImageIndex = -1
+      end
+      object MenuItem3: TMenuItem
+        Action = act_ExitApp
+        Enabled = True
+        Locked = True
+        ImageIndex = -1
+      end
+    end
+    object MenuItem4: TMenuItem
+      Text = #24110#21161
+    end
+  end
+  object lyt_ControlBar: TLayout
+    Align = Left
+    Size.Width = 73.000000000000000000
+    Size.Height = 524.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+  end
+  object lyt_Session: TLayout
+    Align = Left
+    Position.X = 73.000000000000000000
+    Size.Width = 248.000000000000000000
+    Size.Height = 524.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+  end
+  object lyt3: TLayout
+    Align = Client
+    Size.Width = 515.000000000000000000
+    Size.Height = 524.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    object mmo1: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Align = Client
+      Size.Width = 515.000000000000000000
+      Size.Height = 306.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Viewport.Width = 507.000000000000000000
+      Viewport.Height = 298.000000000000000000
+    end
+    object tlb1: TToolBar
+      Size.Width = 515.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+    end
+    object mmo2: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Align = Bottom
+      Position.Y = 376.000000000000000000
+      Size.Width = 515.000000000000000000
+      Size.Height = 105.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Viewport.Width = 507.000000000000000000
+      Viewport.Height = 97.000000000000000000
+    end
+    object pnl1: TPanel
+      Align = Bottom
+      Position.Y = 481.000000000000000000
+      Size.Width = 515.000000000000000000
+      Size.Height = 43.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'pushpanel'
+      TabOrder = 4
+      object btn_Send: TButton
+        Position.X = 424.000000000000000000
+        Position.Y = 11.000000000000000000
+        TabOrder = 0
+        Text = #21457#36865
+      end
+    end
+    object pnl2: TPanel
+      Align = Bottom
+      Position.Y = 346.000000000000000000
+      Size.Width = 515.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'pushpanel'
+      TabOrder = 3
+    end
+  end
+  object actlst1: TActionList
+    Left = 344
+    Top = 120
+    object act_About: TAction
+      Category = 'MainMenu'
+      Text = #20851#20110'RTX2010'
+      OnExecute = act_AboutExecute
+    end
+    object act_ExitApp: TAction
+      Category = 'MainMenu'
+      Text = #36864#20986
+      ShortCut = 4177
+      OnExecute = act_ExitAppExecute
+    end
+    object act_Setting: TAction
+      Category = 'MainMenu'
+      Text = #20559#22909#35774#32622
+      ShortCut = 4165
+      OnExecute = act_SettingExecute
+    end
+  end
+end

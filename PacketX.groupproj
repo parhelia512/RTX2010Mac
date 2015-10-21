@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{555FCDDD-29DF-4B80-BBBA-4C95D2F66381}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="X\X.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="RTXPacketHook\RTXPacketHook.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="X">
+        <MSBuild Projects="X\X.dproj"/>
+    </Target>
+    <Target Name="X:Clean">
+        <MSBuild Projects="X\X.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="X:Make">
+        <MSBuild Projects="X\X.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="RTXPacketHook">
+        <MSBuild Projects="RTXPacketHook\RTXPacketHook.dproj"/>
+    </Target>
+    <Target Name="RTXPacketHook:Clean">
+        <MSBuild Projects="RTXPacketHook\RTXPacketHook.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="RTXPacketHook:Make">
+        <MSBuild Projects="RTXPacketHook\RTXPacketHook.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="X;RTXPacketHook"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="X:Clean;RTXPacketHook:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="X:Make;RTXPacketHook:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

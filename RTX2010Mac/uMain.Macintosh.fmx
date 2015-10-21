@@ -1,0 +1,13 @@
+inherited frm_Main_Macintosh: Tfrm_Main_Macintosh
+  DesignerMasterStyle = 1
+  inherited lyt3: TLayout
+    inherited mmo1: TMemo
+      Viewport.Width = 507.000000000000000000
+      Viewport.Height = 298.000000000000000000
+    end
+    inherited mmo2: TMemo
+      Viewport.Width = 507.000000000000000000
+      Viewport.Height = 97.000000000000000000
+    end
+  end
+end

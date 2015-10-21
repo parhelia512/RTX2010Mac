@@ -1,0 +1,44 @@
+object frm_About: Tfrm_About
+  Left = 0
+  Top = 0
+  BorderIcons = [biSystemMenu]
+  BorderStyle = Single
+  Caption = #20851#20110'RTX2010 MAC'
+  ClientHeight = 170
+  ClientWidth = 323
+  Position = OwnerFormCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object lbl1: TLabel
+    StyledSettings = [Family, FontColor]
+    Position.X = 52.000000000000000000
+    Position.Y = 62.000000000000000000
+    Size.Width = 225.000000000000000000
+    Size.Height = 17.000000000000000000
+    Size.PlatformDefault = False
+    TextSettings.Font.Size = 14.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.HorzAlign = Center
+    Text = 'RTX2010 MAC'
+  end
+  object lbl2: TLabel
+    Position.X = 52.000000000000000000
+    Position.Y = 94.000000000000000000
+    Size.Width = 225.000000000000000000
+    Size.Height = 17.000000000000000000
+    Size.PlatformDefault = False
+    TextSettings.HorzAlign = Center
+    Text = #29256#26412'1.0'
+  end
+  object lbl3: TLabel
+    Position.X = 52.000000000000000000
+    Position.Y = 126.000000000000000000
+    Size.Width = 225.000000000000000000
+    Size.Height = 17.000000000000000000
+    Size.PlatformDefault = False
+    TextSettings.HorzAlign = Center
+    Text = 'Copyright(C)2015 ying32'
+  end
+end
