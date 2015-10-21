@@ -1,13 +1,32 @@
 inherited frm_Main_Macintosh: Tfrm_Main_Macintosh
   DesignerMasterStyle = 1
+  inherited lyt_Session: TLayout
+    inherited tbc1: TTabControl
+      inherited TabItem1: TTabItem
+        inherited lv1: TListView
+          ItemAppearanceObjects.ItemObjects.Accessory.AccessoryType = Checkmark
+        end
+      end
+      inherited TabItem2: TTabItem
+        inherited tv1: TTreeView
+          Viewport.Width = 256.000000000000000000
+          Viewport.Height = 384.000000000000000000
+        end
+      end
+    end
+  end
   inherited lyt3: TLayout
     inherited mmo1: TMemo
-      Viewport.Width = 507.000000000000000000
-      Viewport.Height = 298.000000000000000000
+      Viewport.Width = 560.000000000000000000
+      Viewport.Height = 290.000000000000000000
     end
     inherited mmo2: TMemo
-      Viewport.Width = 507.000000000000000000
+      Viewport.Width = 560.000000000000000000
       Viewport.Height = 97.000000000000000000
     end
+  end
+  inherited stylbk1: TStyleBook [3]
+  end
+  inherited actlst1: TActionList [4]
   end
 end
