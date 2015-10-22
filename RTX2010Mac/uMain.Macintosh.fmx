@@ -15,4 +15,17 @@ inherited frm_Main_Macintosh: Tfrm_Main_Macintosh
       end
     end
   end
+  inherited pm_Status: TPopupMenu [5]
+  end
+  inherited actlst1: TActionList [6]
+    inherited act_Status_Online: TAction
+      ImageIndex = 0
+    end
+    inherited act_Status_Away: TAction
+      ImageIndex = 1
+    end
+    inherited act_Status_Offline: TAction
+      ImageIndex = 2
+    end
+  end
 end

@@ -185,15 +185,11 @@ begin
     Self.Height := S.cy + IfThen(FIsMe, 0, FTime.Height + FUsrText.Height) + 20;
     if LW2 > LW then
     begin
-      FCRectangle.Width := LW2;
-      if FCRectangle.Width < 110 then
-        FCRectangle.Width := 110;
+      FCRectangle.Width := LW2 + 15;
       FLayoutContent.Width := LW2;
     end else
     begin
-      FCRectangle.Width := LW;
-      if FCRectangle.Width < 110 then
-        FCRectangle.Width := 110;
+      FCRectangle.Width := LW + 15;
       if LW >= Self.Width - MLEN then
         FCRectangle.Width := LW - 20;
       FLayoutContent.Width := LW;

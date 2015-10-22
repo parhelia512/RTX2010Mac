@@ -22,7 +22,7 @@ uses
   FMX.TreeView, FMX.Layouts, FMX.Edit, FMX.Objects, FMX.Effects,
   FMX.Controls.Presentation, FMX.Menus, System.Actions, FMX.ActnList,
   FMX.ScrollBox, FMX.Memo, FMX.TabControl, FMX.ExtCtrls, FMX.ListView.Types,
-  FMX.ListView, uSessionFrame;
+  FMX.ListView, uSessionFrame, System.ImageList, FMX.ImgList;
 
 type
   Tfrm_Main = class(TForm)
@@ -48,7 +48,7 @@ type
     lyt2: TLayout;
     lyt4: TLayout;
     img1: TImage;
-    txt1: TText;
+    txt_UserName: TText;
     lv1: TListView;
     tv1: TTreeView;
     trvwtm1: TTreeViewItem;
@@ -56,11 +56,24 @@ type
     trvwtm3: TTreeViewItem;
     stylbk1: TStyleBook;
     Line1: TLine;
+    pm_Status: TPopupMenu;
+    act_Status_Online: TAction;
+    act_Status_Away: TAction;
+    act_Status_Offline: TAction;
+    il_Status: TImageList;
+    MenuItem2: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
+    btn_ChangeStatus: TSpeedButton;
     procedure act_ExitAppExecute(Sender: TObject);
     procedure act_AboutExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure act_SettingExecute(Sender: TObject);
+    procedure act_Status_OnlineExecute(Sender: TObject);
+    procedure act_Status_OfflineExecute(Sender: TObject);
+    procedure act_Status_AwayExecute(Sender: TObject);
+    procedure btn_ChangeStatusClick(Sender: TObject);
   private
     FTestView: Tfra_Session;
   private
@@ -99,6 +112,29 @@ end;
 procedure Tfrm_Main.act_SettingExecute(Sender: TObject);
 begin
   frm_Setting.ShowModal;
+end;
+
+procedure Tfrm_Main.act_Status_AwayExecute(Sender: TObject);
+begin
+//
+end;
+
+procedure Tfrm_Main.act_Status_OfflineExecute(Sender: TObject);
+begin
+//
+end;
+
+procedure Tfrm_Main.act_Status_OnlineExecute(Sender: TObject);
+begin
+//
+end;
+
+procedure Tfrm_Main.btn_ChangeStatusClick(Sender: TObject);
+var
+  P: TPointF;
+begin
+  P := ClientToScreen(btn_ChangeStatus.AbsoluteRect.Location);
+  pm_Status.Popup(P.X, P.Y + btn_ChangeStatus.Height);
 end;
 
 procedure Tfrm_Main.FormClose(Sender: TObject; var Action: TCloseAction);
