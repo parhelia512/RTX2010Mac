@@ -3,7 +3,6 @@ unit uRTXMessageView;
 interface
 
 uses
-  Winapi.Windows,
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Layouts, FMX.Objects, System.Math, System.Generics.Collections;
@@ -31,6 +30,7 @@ type
     FFontSize: Integer;
     FFontName: string;
     FFontColor: TAlphaColor;
+    FFontStyles: TFontStyles;
     procedure SetIsMe(const Value: Boolean);
     procedure SetText(const Value: string);
     procedure AdjustSize;
@@ -43,6 +43,7 @@ type
     procedure SetFontColor(const Value: TAlphaColor);
     procedure SetFontName(const Value: string);
     procedure SetFontSize(const Value: Integer);
+    procedure SetFontStyles(const Value: TFontStyles);
   protected
     procedure Resize;override;
   public
@@ -57,6 +58,7 @@ type
     property FontColor: TAlphaColor read FFontColor write SetFontColor;
     property FontSize: Integer read FFontSize write SetFontSize;
     property FontName: string read FFontName write SetFontName;
+    property FontStyle: TFontStyles read FFontStyles write SetFontStyles;
   end;
 
 //  TRTXMessageItems = class(TPersistent)
@@ -123,7 +125,9 @@ begin
   FCRectangle.Parent := FLayoutContent;
   FCRectangle.Stroke.Kind := TBrushKind.None;
   FCRectangle.HitTest := False;
-  
+  FCRectangle.XRadius := 5;
+  FCRectangle.YRadius := 5;
+
   FContent := TLayout.Create(FCRectangle);
   FContent.Parent := FCRectangle;
   FContent.Align := TAlignLayout.Client;
@@ -136,6 +140,7 @@ begin
   FContentText.TextSettings.WordWrap := True;
   FContentText.TextSettings.Trimming := TTextTrimming.Character;
   FContentText.TextSettings.HorzAlign := TTextAlign.Leading;
+  FContentText.Margins.Left := 4;
   Width := 150;
   IsMe := True;
 end;
@@ -176,7 +181,8 @@ begin
 
     LW := S.cx + MLEN;
     LW2 := S2.cx + MLEN;
-    Self.Height := S.cy + FTime.Height + FUsrText.Height + 20;
+
+    Self.Height := S.cy + IfThen(FIsMe, 0, FTime.Height + FUsrText.Height) + 20;
     if LW2 > LW then
     begin
       FCRectangle.Width := LW2;
@@ -239,6 +245,15 @@ begin
   end;
 end;
 
+procedure TRTXMessageItem.SetFontStyles(const Value: TFontStyles);
+begin
+  if FFontStyles <> Value then
+  begin
+    FFontStyles := Value;
+    FContentText.TextSettings.Font.Style := FFontStyles;
+  end;
+end;
+
 procedure TRTXMessageItem.SetIsMe(const Value: Boolean);
 begin
   if FIsMe <> Value then
@@ -249,6 +264,9 @@ begin
     FCRectangle.CalloutWidth := MLEN;
     if FIsMe then
     begin
+      FTime.Visible := False;
+      FUsrText.Visible := False;
+
       FLayoutContent.Align := TAlignLayout.Right;
       FUsrText.Margins.Right := MLEN + 15;
       FUsrText.Margins.Left := 0;
@@ -266,6 +284,9 @@ begin
       FCRectangle.Margins.Right := 15;
     end else
     begin
+      FTime.Visible := True;
+      FUsrText.Visible := True;
+
       FLayoutContent.Align := TAlignLayout.Left;
       FUsrText.Margins.Right := 0;
       FUsrText.Margins.Left := MLEN;
@@ -373,6 +394,7 @@ begin
     Self.EndUpdate;
   end;
   ViewportPosition := PointF(0, LTop);
+  Self.Repaint;
 end;
 
 procedure TRTXMessageView.Resize;

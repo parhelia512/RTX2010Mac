@@ -38,7 +38,7 @@
         </DeployFile>
         <DeployFile Include="RTX2010Mac_Icns.icns" Condition="'$(Config)'=='Debug'">
             <RemoteDir>RTX2010.app\Contents\Resources\</RemoteDir>
-            <RemoteName>RTX2010Mac.icns</RemoteName>
+            <RemoteName>RTX2010.icns</RemoteName>
             <Operation>1</Operation>
             <LocalCommand/>
             <RemoteCommand/>
@@ -85,7 +85,7 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="OSX32\Debug\RTX2010Mac.info.plist" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="OSX32\Debug\RTX2010.info.plist" Condition="'$(Config)'=='Debug'">
             <RemoteDir>RTX2010.app\Contents\</RemoteDir>
             <RemoteName>Info.plist</RemoteName>
             <Operation>1</Operation>
@@ -101,7 +101,7 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="OSX32\Debug\RTX2010Mac.entitlements" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="OSX32\Debug\RTX2010.entitlements" Condition="'$(Config)'=='Debug'">
             <RemoteDir>RTX2010.app\../\</RemoteDir>
             <RemoteName>Entitlements.plist</RemoteName>
             <Operation>1</Operation>

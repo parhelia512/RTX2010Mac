@@ -1,4 +1,4 @@
-object dm_UDP: Tdm_UDP
+object dm_RTXNetModule: Tdm_RTXNetModule
   OldCreateOrder = False
   OnCreate = DataModuleCreate
   OnDestroy = DataModuleDestroy

@@ -1,0 +1,167 @@
+object fra_Session: Tfra_Session
+  Size.Width = 564.000000000000000000
+  Size.Height = 475.000000000000000000
+  Size.PlatformDefault = False
+  OnKeyDown = FrameKeyDown
+  object Rectangle1: TRectangle
+    Align = Contents
+    Fill.Color = xDCF7F6F6
+    HitTest = False
+    Size.Width = 564.000000000000000000
+    Size.Height = 475.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object lyt1: TLayout
+      Align = Bottom
+      Position.Y = 423.000000000000000000
+      Size.Width = 564.000000000000000000
+      Size.Height = 52.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object btn_Send: TButton
+        Position.X = 464.000000000000000000
+        Position.Y = 17.000000000000000000
+        TabOrder = 0
+        Text = #21457#36865
+        OnClick = btn_SendClick
+      end
+    end
+    object lyt2: TLayout
+      Align = Top
+      Size.Width = 564.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+    end
+    object lyt3: TLayout
+      Align = Client
+      Size.Width = 564.000000000000000000
+      Size.Height = 373.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      object spl1: TSplitter
+        Align = Bottom
+        Cursor = crVSplit
+        MinSize = 10.000000000000000000
+        Position.Y = 254.000000000000000000
+        Size.Width = 564.000000000000000000
+        Size.Height = 5.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object lyt4: TLayout
+        Align = Bottom
+        Position.Y = 259.000000000000000000
+        Size.Width = 564.000000000000000000
+        Size.Height = 114.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object mmo_Msg: TMemo
+          Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+          DataDetectorTypes = []
+          StyledSettings = []
+          Align = Bottom
+          Margins.Left = 2.000000000000000000
+          Margins.Right = 2.000000000000000000
+          Position.X = 2.000000000000000000
+          Position.Y = 28.000000000000000000
+          Size.Width = 560.000000000000000000
+          Size.Height = 86.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          Viewport.Width = 556.000000000000000000
+          Viewport.Height = 82.000000000000000000
+        end
+        object tlb1: TToolBar
+          Align = Bottom
+          Position.Y = 1.000000000000000000
+          Size.Width = 564.000000000000000000
+          Size.Height = 27.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          object cbb_Fonts: TComboBox
+            Items.Strings = (
+              #23435#20307
+              #24494#36719#38597#40657)
+            ItemIndex = 0
+            Position.X = 2.000000000000000000
+            Position.Y = 3.000000000000000000
+            TabOrder = 0
+          end
+          object cbb_FontColor: TComboColorBox
+            Color = claWhite
+            Position.X = 170.000000000000000000
+            Position.Y = 3.000000000000000000
+            Size.Width = 60.000000000000000000
+            Size.Height = 22.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            UseAlpha = False
+            OnChange = cbb_FontColorChange
+          end
+          object btn_Style_B: TSpeedButton
+            StaysPressed = True
+            StyledSettings = [Family, Size, FontColor]
+            Position.X = 237.000000000000000000
+            Position.Y = 3.000000000000000000
+            Size.Width = 25.000000000000000000
+            Size.Height = 22.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'toolbuttonleft'
+            Text = 'B'
+            TextSettings.Font.Style = [fsBold]
+            OnClick = btn_Style_BClick
+          end
+          object btn_Style_I: TSpeedButton
+            StaysPressed = True
+            StyledSettings = [Family, Size, FontColor]
+            Position.X = 269.000000000000000000
+            Position.Y = 3.000000000000000000
+            Size.Width = 25.000000000000000000
+            Size.Height = 22.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'toolbuttonleft'
+            Text = 'I'
+            TextSettings.Font.Style = [fsBold, fsItalic]
+            OnClick = btn_Style_IClick
+          end
+          object btn_Style_U: TSpeedButton
+            StaysPressed = True
+            StyledSettings = [Family, Size, FontColor]
+            Position.X = 301.000000000000000000
+            Position.Y = 3.000000000000000000
+            Size.Width = 25.000000000000000000
+            Size.Height = 22.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'toolbuttonleft'
+            Text = 'U'
+            TextSettings.Font.Style = [fsBold, fsUnderline]
+            OnClick = btn_Style_UClick
+          end
+          object cbb_FontSize: TComboTrackBar
+            Touch.InteractiveGestures = [LongTap, DoubleTap]
+            TabOrder = 12
+            Cursor = crIBeam
+            Min = 5.000000000000000000
+            Max = 20.000000000000000000
+            Value = 12.000000000000000000
+            Frequency = 0.000000000000000000
+            DecimalDigits = 3
+            Position.X = 117.000000000000000000
+            Position.Y = 3.000000000000000000
+            Size.Width = 41.000000000000000000
+            Size.Height = 22.000000000000000000
+            Size.PlatformDefault = False
+            OnChangeTracking = cbb_FontSizeChangeTracking
+          end
+        end
+      end
+      object lyt_MessageView: TLayout
+        Align = Client
+        Size.Width = 564.000000000000000000
+        Size.Height = 254.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+      end
+    end
+  end
+end

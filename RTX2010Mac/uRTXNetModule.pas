@@ -10,7 +10,7 @@
 //
 //
 //***************************************************************************
-unit uUDPModule;
+unit uRTXNetModule;
 
 interface
 
@@ -22,7 +22,7 @@ uses
 type
   TRTXReadDataThread = class;
 
-  Tdm_UDP = class(TDataModule)
+  Tdm_RTXNetModule = class(TDataModule)
     idtcpclnt_RTX: TIdTCPClient;
     tmr_RTXKeeplive: TTimer;
     procedure DataModuleCreate(Sender: TObject);
@@ -70,7 +70,7 @@ type
   end;
 
 var
-  dm_UDP: Tdm_UDP;
+  dm_RTXNetModule: Tdm_RTXNetModule;
 
 implementation
 
@@ -80,7 +80,7 @@ uses uConfigFile, uDebug;
 
 {$R *.dfm}
 
-procedure Tdm_UDP.CancelLogin;
+procedure Tdm_RTXNetModule.CancelLogin;
 begin
   if idtcpclnt_RTX.Connected then
     idtcpclnt_RTX.Disconnect;
@@ -91,7 +91,7 @@ begin
   end;
 end;
 
-procedure Tdm_UDP.DataModuleCreate(Sender: TObject);
+procedure Tdm_RTXNetModule.DataModuleCreate(Sender: TObject);
 begin
   DBG('DataModuleCreate');
   tmr_RTXKeeplive.Interval := 1000 * 20;
@@ -102,20 +102,20 @@ begin
   FRTXPacket.OnIMMessage := OnRTXIMMessage;
 end;
 
-procedure Tdm_UDP.DataModuleDestroy(Sender: TObject);
+procedure Tdm_RTXNetModule.DataModuleDestroy(Sender: TObject);
 begin
   CancelLogin;
   FRTXPacket.Free;
 end;
 
-procedure Tdm_UDP.idtcpclnt_RTXConnected(Sender: TObject);
+procedure Tdm_RTXNetModule.idtcpclnt_RTXConnected(Sender: TObject);
 begin
   // 成功连接之后登录
   FRTXPacket.Login;
   StartLoginThread;
 end;
 
-procedure Tdm_UDP.LoginRTX(const AUser, APwd: string);
+procedure Tdm_RTXNetModule.LoginRTX(const AUser, APwd: string);
 var
   LConf: TRTXConfig;
 begin
@@ -150,7 +150,7 @@ begin
   end;
 end;
 
-procedure Tdm_UDP.OnRTXError(Sender: TObject; const AError: string;
+procedure Tdm_RTXNetModule.OnRTXError(Sender: TObject; const AError: string;
   ACode: Integer);
 begin
   TThread.Synchronize(nil,
@@ -164,7 +164,7 @@ begin
     end);
 end;
 
-procedure Tdm_UDP.OnRTXIMMessage(Sender: TObject; const AFrom, ATo,
+procedure Tdm_RTXNetModule.OnRTXIMMessage(Sender: TObject; const AFrom, ATo,
   ABody: string);
 begin
   if Assigned(FRTXOnMainFormIMMessage) then
@@ -177,7 +177,7 @@ begin
   end;
 end;
 
-procedure Tdm_UDP.OnRTXLoginResult(Sender: TObject; AStatus: Integer);
+procedure Tdm_RTXNetModule.OnRTXLoginResult(Sender: TObject; AStatus: Integer);
 begin
   gIsLogin := AStatus = 1;
   {$IFDEF MACOS}
@@ -199,7 +199,7 @@ begin
     end);
 end;
 
-procedure Tdm_UDP.StartLoginThread;
+procedure Tdm_RTXNetModule.StartLoginThread;
 begin
   if FRTXReadThread = nil then
   begin
@@ -208,7 +208,7 @@ begin
   end;
 end;
 
-procedure Tdm_UDP.tmr_RTXKeepliveTimer(Sender: TObject);
+procedure Tdm_RTXNetModule.tmr_RTXKeepliveTimer(Sender: TObject);
 begin
   if gIsLogin then
     FRTXPacket.Keeplive;

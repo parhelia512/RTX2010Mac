@@ -67,22 +67,13 @@ implementation
 
 {$R *.fmx}
 
-uses uGlobalDef, uUDPModule, uDebug, ufrmSetting;
-
-//procedure Waiting(ms: Cardinal);
-//begin
-//  while ms > 0 do
-//  begin
-//    TThread.Sleep(1);
-//    Dec(ms);
-//  end;
-//end;
+uses uGlobalDef, uRTXNetModule, uDebug, ufrmSetting;
 
 procedure Tfrm_Login.btn_CancelClick(Sender: TObject);
 begin
   HideLogging;
   SetRTXEvent(True);
-  dm_UDP.CancelLogin;
+  dm_RTXNetModule.CancelLogin;
 end;
 
 procedure Tfrm_Login.btn_LoginClick(Sender: TObject);
@@ -101,7 +92,7 @@ begin
   end;  
   ShowLogging;
   SetRTXEvent;
-  dm_UDP.LoginRTX(edt_User.Text, edt_Pwd.Text);
+  dm_RTXNetModule.LoginRTX(edt_User.Text, edt_Pwd.Text);
 end;
 
 procedure Tfrm_Login.btn_SettingClick(Sender: TObject);
@@ -143,7 +134,7 @@ begin
   if chk_AutoLogin.IsChecked then
   begin
     ShowLogging;
-    dm_UDP.LoginRTX(FConf.UserName, FConf.Password);
+    dm_RTXNetModule.LoginRTX(FConf.UserName, FConf.Password);
   end;
 {$IFDEF ShowLoginForm}
   ShowModal;
@@ -203,7 +194,7 @@ begin
     begin
       FConf.UserName := edt_User.Text;
       FConf.Password := edt_Pwd.Text;
-    end;    
+    end;
   {$IFNDEF LoginFormAMain}
     DBG('ִ�йرգ�');
     Close;
@@ -215,16 +206,16 @@ end;
 
 procedure Tfrm_Login.SetRTXEvent(ASetNil: Boolean);
 begin
-  if Assigned(dm_UDP) then
+  if Assigned(dm_RTXNetModule) then
   begin
     if ASetNil then
     begin
-      dm_UDP.RTXOnLoginFormError := nil;
-      dm_UDP.RTXOnLoginFormResult := nil;
+      dm_RTXNetModule.RTXOnLoginFormError := nil;
+      dm_RTXNetModule.RTXOnLoginFormResult := nil;
     end else
     begin
-      dm_UDP.RTXOnLoginFormError := OnRTXError;
-      dm_UDP.RTXOnLoginFormResult := OnRTXLoginResult;
+      dm_RTXNetModule.RTXOnLoginFormError := OnRTXError;
+      dm_RTXNetModule.RTXOnLoginFormResult := OnRTXLoginResult;
     end;
   end;
 end;

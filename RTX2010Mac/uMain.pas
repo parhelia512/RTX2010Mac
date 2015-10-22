@@ -12,6 +12,8 @@
 //***************************************************************************
 unit uMain;
 
+{$I 'RTX.inc'}
+
 interface
 
 uses
@@ -20,7 +22,7 @@ uses
   FMX.TreeView, FMX.Layouts, FMX.Edit, FMX.Objects, FMX.Effects,
   FMX.Controls.Presentation, FMX.Menus, System.Actions, FMX.ActnList,
   FMX.ScrollBox, FMX.Memo, FMX.TabControl, FMX.ExtCtrls, FMX.ListView.Types,
-  FMX.ListView;
+  FMX.ListView, uSessionFrame;
 
 type
   Tfrm_Main = class(TForm)
@@ -36,13 +38,7 @@ type
     act_ExitApp: TAction;
     act_Setting: TAction;
     lyt_Session: TLayout;
-    lyt3: TLayout;
-    mmo1: TMemo;
-    tlb1: TToolBar;
-    mmo2: TMemo;
-    pnl1: TPanel;
-    pnl2: TPanel;
-    btn_Send: TButton;
+    lyt_MessageView: TLayout;
     tbc1: TTabControl;
     lyt1: TLayout;
     TabItem1: TTabItem;
@@ -59,16 +55,23 @@ type
     trvwtm2: TTreeViewItem;
     trvwtm3: TTreeViewItem;
     stylbk1: TStyleBook;
+    Line1: TLine;
     procedure act_ExitAppExecute(Sender: TObject);
     procedure act_AboutExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure act_SettingExecute(Sender: TObject);
   private
+    FTestView: Tfra_Session;
+  private
     procedure OnRTXIMMessage(Sender: TObject; const AFrom, ATo, ABody: string);
     procedure OnRTXLoginResult(Sender: TObject; AStatus: Integer);
 
     procedure TestListView;
+    // 新建一个
+
+
+//    function CreateSessionPanel: TPanel;
   public
     { Public declarations }
   end;
@@ -81,7 +84,7 @@ implementation
 {$R *.fmx}
 {$R *.Macintosh.fmx MACOS}
 
-uses uUDPModule, ufrmAbout, uDebug, ufrmSetting, uGlobalDef;
+uses uRTXNetModule, ufrmAbout, uDebug, ufrmSetting, uGlobalDef;
 
 procedure Tfrm_Main.act_AboutExecute(Sender: TObject);
 begin
@@ -107,11 +110,12 @@ procedure Tfrm_Main.FormCreate(Sender: TObject);
 begin
   TestListView;
   DBG('Tfrm_Main.FormCreate');
-  if Assigned(dm_UDP) then
+  if Assigned(dm_RTXNetModule) then
   begin
-    dm_UDP.RTXOnMainFormIMMessage := OnRTXIMMessage;
-    dm_UDP.RTXOnMainFormLoginResult := OnRTXLoginResult;
+    dm_RTXNetModule.RTXOnMainFormIMMessage := OnRTXIMMessage;
+    dm_RTXNetModule.RTXOnMainFormLoginResult := OnRTXLoginResult;
   end;
+  FTestView := CreateSessionFrame(Self, lyt_MessageView);
 end;
 
 procedure Tfrm_Main.OnRTXIMMessage(Sender: TObject; const AFrom, ATo,
@@ -137,5 +141,10 @@ begin
   LItem := lv1.Items.Add;
   LItem.Text := '测试2';
 end;
+
+initialization
+{$IFDEF MSWINDOWS}
+//  GlobalUseDX10 := False;
+{$ENDIF}
 
 end.
