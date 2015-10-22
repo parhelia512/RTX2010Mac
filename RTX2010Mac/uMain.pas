@@ -19,7 +19,8 @@ uses
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.TreeView, FMX.Layouts, FMX.Edit, FMX.Objects, FMX.Effects,
   FMX.Controls.Presentation, FMX.Menus, System.Actions, FMX.ActnList,
-  FMX.ScrollBox, FMX.Memo;
+  FMX.ScrollBox, FMX.Memo, FMX.TabControl, FMX.ExtCtrls, FMX.ListView.Types,
+  FMX.ListView;
 
 type
   Tfrm_Main = class(TForm)
@@ -34,7 +35,6 @@ type
     act_About: TAction;
     act_ExitApp: TAction;
     act_Setting: TAction;
-    lyt_ControlBar: TLayout;
     lyt_Session: TLayout;
     lyt3: TLayout;
     mmo1: TMemo;
@@ -43,6 +43,22 @@ type
     pnl1: TPanel;
     pnl2: TPanel;
     btn_Send: TButton;
+    tbc1: TTabControl;
+    lyt1: TLayout;
+    TabItem1: TTabItem;
+    TabItem2: TTabItem;
+    edt1: TEdit;
+    SearchEditButton1: TSearchEditButton;
+    lyt2: TLayout;
+    lyt4: TLayout;
+    img1: TImage;
+    txt1: TText;
+    lv1: TListView;
+    tv1: TTreeView;
+    trvwtm1: TTreeViewItem;
+    trvwtm2: TTreeViewItem;
+    trvwtm3: TTreeViewItem;
+    stylbk1: TStyleBook;
     procedure act_ExitAppExecute(Sender: TObject);
     procedure act_AboutExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -51,6 +67,8 @@ type
   private
     procedure OnRTXIMMessage(Sender: TObject; const AFrom, ATo, ABody: string);
     procedure OnRTXLoginResult(Sender: TObject; AStatus: Integer);
+
+    procedure TestListView;
   public
     { Public declarations }
   end;
@@ -87,6 +105,7 @@ end;
 
 procedure Tfrm_Main.FormCreate(Sender: TObject);
 begin
+  TestListView;
   DBG('Tfrm_Main.FormCreate');
   if Assigned(dm_UDP) then
   begin
@@ -105,6 +124,18 @@ procedure Tfrm_Main.OnRTXLoginResult(Sender: TObject; AStatus: Integer);
 begin
   if gIsLogin then
     Show;
+end;
+
+procedure Tfrm_Main.TestListView;
+var
+  LItem: TListViewItem;
+begin
+
+  LItem := lv1.Items.Add;
+  LItem.Text := '≤‚ ‘1';
+
+  LItem := lv1.Items.Add;
+  LItem.Text := '≤‚ ‘2';
 end;
 
 end.

@@ -5,6 +5,6 @@
    {$DEFINE DelphiXE8}
 {$ENDIF}
 
-{$DEFINE ShowLoginForm}
+//{$DEFINE ShowLoginForm}
 
 {'$DEFINE LoginFormAMain}
