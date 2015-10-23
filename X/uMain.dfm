@@ -348,11 +348,14 @@ object frm_RTXPacket: Tfrm_RTXPacket
     object SessionKey1: TMenuItem
       Action = act_UseSessionKeyDecrypt
     end
-    object ouchKey2: TMenuItem
-      Action = act_UseTouchKeyDecrypt
+    object N2: TMenuItem
+      Caption = '-'
     end
-    object PassKey21: TMenuItem
-      Action = act_UsePasskey2Decrypt
+    object N0C001: TMenuItem
+      Action = act_msg_0C00
+    end
+    object N0C011: TMenuItem
+      Action = act_msg_0C01
     end
   end
   object actlst1: TActionList
@@ -398,6 +401,15 @@ object frm_RTXPacket: Tfrm_RTXPacket
     object act_LoadBuffer: TAction
       Caption = #36733#20837'Buffer'#25991#20214
       OnExecute = act_LoadBufferExecute
+    end
+    object act_msg_0C00: TAction
+      Caption = #22788#29702'0C00'#28040#24687
+    end
+    object act_msg_0C01: TAction
+      Caption = #22788#29702'0C01'#28040#24687
+    end
+    object act_msg_0C02: TAction
+      Caption = #22788#29702'0C02'
     end
   end
   object pm_HexEditor: TPopupMenu

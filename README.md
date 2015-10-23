@@ -19,7 +19,7 @@
 
 ###第三方库使用情况：
 1. RTX2010中使用了RYYD编写的QQTEA.pas单元，由我增加支持Mac平台
-2. RTXPacketHook 中使用了[wr960204武稀松](http://www.raysoftware.cn)的HookUtils.pas
+2. RTXPacketHook 中使用了[wr960204武稀松](http://www.raysoftware.cn)的HookUtils.pas，用习惯这个了自己都忘了怎么做hook了，只能怪这个好用，嘿嘿
 3. X中使用了来自[CnPack团队](http://www.cnpack.org)的Cnvcl控件CnHexEditor.pas及CnMD5.pas单元 
 
 

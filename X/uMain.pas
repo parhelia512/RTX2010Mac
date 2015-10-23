@@ -28,7 +28,6 @@ type
     pm1: TPopupMenu;
     actlst1: TActionList;
     act_UseTouchKeyDecrypt: TAction;
-    ouchKey2: TMenuItem;
     act_UseSessionKeyDecrypt: TAction;
     SessionKey1: TMenuItem;
     act_clearpackets: TAction;
@@ -41,7 +40,6 @@ type
     edt_SessionKey: TEdit;
     lbl6: TLabel;
     act_UsePasskey2Decrypt: TAction;
-    PassKey21: TMenuItem;
     lbl8: TLabel;
     lbl9: TLabel;
     edt_usr: TEdit;
@@ -62,6 +60,12 @@ type
     act_SaveBuffer: TAction;
     act_LoadBuffer: TAction;
     dlgOpen1: TOpenDialog;
+    act_msg_0C00: TAction;
+    act_msg_0C01: TAction;
+    N2: TMenuItem;
+    N0C001: TMenuItem;
+    N0C011: TMenuItem;
+    act_msg_0C02: TAction;
     procedure FormCreate(Sender: TObject);
     procedure btn_refprocessClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
