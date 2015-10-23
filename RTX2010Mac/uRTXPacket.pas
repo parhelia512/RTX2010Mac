@@ -34,7 +34,8 @@ uses
   uBytesHelper,
   uRTXPacketRWriter,
   QQTEA,
-  StreamRWriter;
+  StreamRWriter,
+  uRTXXMLData;
 
 type
   TRTXDataHead = packed record
@@ -163,7 +164,7 @@ type
     procedure Process_Unknow(Data: TBytes; ACmd: Integer);
     procedure InitUserInfo(const AUserName, APassword: string);
     procedure Login;
-    procedure SendIMMessage(const ATo, AMsg: string);
+    procedure SendIMMessage(const ATo, AMsg: string; AFont: TRTXMsgFontAttr);
     procedure DeleteSession(const AKey: string);
   published
     property Socket: {$IFDEF USEIDTCP}TIdTCPClient{$ELSE}TClientSocket{$ENDIF} read FSocket  write SetSocket;
@@ -183,7 +184,7 @@ uses
     CnMD5,
   {$ENDIF}
 {$ENDIF}
-  uDebug, uRTXXMLData;
+  uDebug;
 
 
 
@@ -664,11 +665,11 @@ begin
           ProcessIMMessage(LBody);
         end);
       SendIMMessageToMainForm(LFrom, LTo, LBody);
-      TThread.Synchronize(nil,
-        procedure
-        begin
-          Self.SendIMMessage(LFrom, '收到啦 ~ ' + DateTimeToStr(Now));
-        end);
+//      TThread.Synchronize(nil,
+//        procedure
+//        begin
+//          //Self.SendIMMessage(LFrom, '收到啦 ~ ' + DateTimeToStr(Now));
+//        end);
 
     finally
       LRTXData.Free;
@@ -716,7 +717,7 @@ begin
     FOnError(Self, AErr, ACode);
 end;
 
-procedure TRTXPacket.SendIMMessage(const ATo, AMsg: string);
+procedure TRTXPacket.SendIMMessage(const ATo, AMsg: string; AFont: TRTXMsgFontAttr);
 var
   LRTXStream: TRTXStream;
   LRTXCData: TRTXCData;
@@ -735,7 +736,7 @@ begin
         LRTXCData := TRTXCData.Create;
         try
           LRTXCData.SetLong('Mode', 0);
-          LRTXMsg := TRTXMsg.Create(AMsg);
+          LRTXMsg := TRTXMsg.Create(AMsg, AFont);
           try
             LRTXCData.SetString('Content', LRTXMsg.XML);
           finally

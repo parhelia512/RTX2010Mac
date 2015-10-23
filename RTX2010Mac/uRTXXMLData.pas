@@ -26,7 +26,7 @@ uses
   Xml.XMLDoc;
 
 type
-  TRTXMsgFontProperty = record
+  TRTXMsgFontAttr = record
     Name: string;
     CharSet: Integer;
     PAF: Integer;
@@ -68,16 +68,16 @@ type
   private
     function GetText: string;
     procedure SetText(const Value: string);
-    function GetFonts: TRTXMsgFontProperty;
-    procedure SetFonts(const Value: TRTXMsgFontProperty);
-    procedure SetFontNodeProperty(ANode: IXMLNode; Value: TRTXMsgFontProperty);
+    function GetFonts: TRTXMsgFontAttr;
+    procedure SetFonts(const Value: TRTXMsgFontAttr);
+    procedure SetFontNodeProperty(ANode: IXMLNode; Value: TRTXMsgFontAttr);
     procedure SetTxtNodeText(ANode: IXMLNode; const AText: string);
   public
-    constructor Create(const AText: string; AFont: TRTXMsgFontProperty); overload;
+    constructor Create(const AText: string; AFont: TRTXMsgFontAttr); overload;
     constructor Create(const AText: string); overload;
   public
     property Text: string read GetText write SetText;
-    property Fonts: TRTXMsgFontProperty read GetFonts write SetFonts;
+    property Fonts: TRTXMsgFontAttr read GetFonts write SetFonts;
   end;
 
 implementation
@@ -246,7 +246,7 @@ end;
 
 { TRTXMsg }
 
-constructor TRTXMsg.Create(const AText: string; AFont: TRTXMsgFontProperty);
+constructor TRTXMsg.Create(const AText: string; AFont: TRTXMsgFontAttr);
 var
   LNode: IXMLNode;
 begin
@@ -267,7 +267,7 @@ end;
 
 constructor TRTXMsg.Create(const AText: string);
 var
-  LFonts: TRTXMsgFontProperty;
+  LFonts: TRTXMsgFontAttr;
 begin
   LFonts.Name := 'ËÎÌו';
   LFonts.CharSet := 134;
@@ -279,11 +279,11 @@ begin
   Create(AText, LFonts);
 end;
 
-function TRTXMsg.GetFonts: TRTXMsgFontProperty;
+function TRTXMsg.GetFonts: TRTXMsgFontAttr;
 var
   LNode: IXMLNode;
 begin
-  FillChar(Result, SizeOf(TRTXMsgFontProperty), #0);
+  FillChar(Result, SizeOf(TRTXMsgFontAttr), #0);
   LNode := FXML.ChildNodes.FindNode('Content');
   if Assigned(LNode) then
   begin
@@ -317,7 +317,7 @@ begin
 end;
 
 procedure TRTXMsg.SetFontNodeProperty(ANode: IXMLNode;
-  Value: TRTXMsgFontProperty);
+  Value: TRTXMsgFontAttr);
 begin
   if Assigned(ANode) then
   begin
@@ -331,7 +331,7 @@ begin
   end;
 end;
 
-procedure TRTXMsg.SetFonts(const Value: TRTXMsgFontProperty);
+procedure TRTXMsg.SetFonts(const Value: TRTXMsgFontAttr);
 var
   LNode: IXMLNode;
 begin

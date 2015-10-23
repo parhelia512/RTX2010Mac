@@ -17,7 +17,9 @@ uses
   uConfigFile in 'uConfigFile.pas',
   ufrmSetting in 'ufrmSetting.pas' {frm_Setting},
   uRTXMessageView in 'uRTXMessageView.pas',
-  uSessionFrame in 'uSessionFrame.pas' {fra_Session: TFrame};
+  uSessionFrame in 'uSessionFrame.pas' {fra_Session: TFrame},
+  udm_Common in 'udm_Common.pas' {dm_Common: TDataModule},
+  FMX.Consts in 'FMX.Consts.pas';
 
 {$R *.res}
 
@@ -25,6 +27,7 @@ begin
 
   Application.Initialize;
   Application.CreateForm(Tdm_RTXNetModule, dm_RTXNetModule);
+  Application.CreateForm(Tdm_Common, dm_Common);
   Application.CreateForm(Tfrm_Main, frm_Main);
   Application.CreateForm(Tfrm_About, frm_About);
   Application.CreateForm(Tfrm_Setting, frm_Setting);

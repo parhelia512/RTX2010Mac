@@ -10,14 +10,12 @@ inherited frm_Main_Macintosh: Tfrm_Main_Macintosh
       inherited TabItem2: TTabItem
         inherited tv1: TTreeView
           Viewport.Width = 256.000000000000000000
-          Viewport.Height = 384.000000000000000000
+          Viewport.Height = 381.000000000000000000
         end
       end
     end
   end
-  inherited pm_Status: TPopupMenu [5]
-  end
-  inherited actlst1: TActionList [6]
+  inherited actlst1: TActionList
     inherited act_Status_Online: TAction
       ImageIndex = 0
     end

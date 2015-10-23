@@ -22,7 +22,8 @@ uses
   FMX.TreeView, FMX.Layouts, FMX.Edit, FMX.Objects, FMX.Effects,
   FMX.Controls.Presentation, FMX.Menus, System.Actions, FMX.ActnList,
   FMX.ScrollBox, FMX.Memo, FMX.TabControl, FMX.ExtCtrls, FMX.ListView.Types,
-  FMX.ListView, uSessionFrame, System.ImageList, FMX.ImgList;
+  FMX.ListView, uSessionFrame, System.ImageList, FMX.ImgList, FMX.Notification,
+  System.Hash;
 
 type
   Tfrm_Main = class(TForm)
@@ -65,6 +66,8 @@ type
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     btn_ChangeStatus: TSpeedButton;
+    NotificationCenter: TNotificationCenter;
+    btn1: TButton;
     procedure act_ExitAppExecute(Sender: TObject);
     procedure act_AboutExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -74,6 +77,9 @@ type
     procedure act_Status_OfflineExecute(Sender: TObject);
     procedure act_Status_AwayExecute(Sender: TObject);
     procedure btn_ChangeStatusClick(Sender: TObject);
+    procedure btn1Click(Sender: TObject);
+    procedure NotificationCenterReceiveLocalNotification(Sender: TObject;
+      ANotification: TNotification);
   private
     FTestView: Tfra_Session;
   private
@@ -81,10 +87,15 @@ type
     procedure OnRTXLoginResult(Sender: TObject; AStatus: Integer);
 
     procedure TestListView;
-    // 新建一个
 
-
-//    function CreateSessionPanel: TPanel;
+    /// <summary>
+    ///   设置Dock显示消息条数值
+    /// </summary>
+    procedure SetBadgeNumber(Value: Integer = 0);
+    /// <summary>
+    ///   发送通知
+    /// </summary>
+    procedure SendNotification(const ATitle, AText: string);
   public
     { Public declarations }
   end;
@@ -99,6 +110,14 @@ implementation
 
 uses uRTXNetModule, ufrmAbout, uDebug, ufrmSetting, uGlobalDef;
 
+/// <summary>
+///   发送通知用的
+/// </summary>
+function GetTimeMD5String: string;
+begin
+  Result := THashMD5.GetHashString(DateTimeToStr(Now));
+end;
+
 procedure Tfrm_Main.act_AboutExecute(Sender: TObject);
 begin
   frm_About.ShowModal;
@@ -111,7 +130,7 @@ end;
 
 procedure Tfrm_Main.act_SettingExecute(Sender: TObject);
 begin
-  frm_Setting.ShowModal;
+  frm_Setting.Show;
 end;
 
 procedure Tfrm_Main.act_Status_AwayExecute(Sender: TObject);
@@ -127,6 +146,11 @@ end;
 procedure Tfrm_Main.act_Status_OnlineExecute(Sender: TObject);
 begin
 //
+end;
+
+procedure Tfrm_Main.btn1Click(Sender: TObject);
+begin
+  SendNotification('测试', '测试通知');
 end;
 
 procedure Tfrm_Main.btn_ChangeStatusClick(Sender: TObject);
@@ -154,6 +178,20 @@ begin
   FTestView := CreateSessionFrame(Self, lyt_MessageView);
 end;
 
+procedure Tfrm_Main.NotificationCenterReceiveLocalNotification(Sender: TObject;
+  ANotification: TNotification);
+begin
+  DBG('收到通知, Name=%s, Title=%s, AlertBody=%s, AlertAction=%s, Number=%d',
+   [
+     ANotification.Name,
+     ANotification.Title,
+     ANotification.AlertBody,
+     ANotification.AlertAction,
+     ANotification.Number
+   ]);
+  NotificationCenter.CancelNotification(ANotification.Name);
+end;
+
 procedure Tfrm_Main.OnRTXIMMessage(Sender: TObject; const AFrom, ATo,
   ABody: string);
 begin
@@ -162,8 +200,38 @@ end;
 
 procedure Tfrm_Main.OnRTXLoginResult(Sender: TObject; AStatus: Integer);
 begin
-  if gIsLogin then
-    Show;
+
+end;
+
+procedure Tfrm_Main.SendNotification(const ATitle, AText: string);
+var
+  N: TNotification;
+begin
+  if NotificationCenter.Supported then
+  begin
+    N := NotificationCenter.CreateNotification;
+    try
+      N.Name := 'RTX2010Notification_' + GetTimeMD5String;
+      N.Title := ATitle;
+      N.AlertBody := AText;
+      N.FireDate := Now;
+      NotificationCenter.PresentNotification(N);
+    finally
+      N.DisposeOf;
+    end;
+  end;
+end;
+
+procedure Tfrm_Main.SetBadgeNumber(Value: Integer);
+begin
+  if NotificationCenter.Supported then
+  begin
+    NotificationCenter.ApplicationIconBadgeNumber := Value;
+    //if Value > 0 then
+    //  NotificationCenter.ApplicationIconBadgeNumber := NotificationCenter.ApplicationIconBadgeNumber + Value
+    //else if Value = 0 then
+    //  NotificationCenter.ApplicationIconBadgeNumber := 0;
+  end;
 end;
 
 procedure Tfrm_Main.TestListView;

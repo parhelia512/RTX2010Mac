@@ -7,17 +7,17 @@ uses
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Layouts, FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.ListBox,
   FMX.Colors, FMX.Edit, FMX.ComboEdit, FMX.ComboTrackBar, uRTXMessageView,
-  FMX.Objects;
+  FMX.Objects, uRTXNetModule, uRTXXMLData, System.Math.Vectors, FMX.Controls3D,
+  FMX.Layers3D, FMX.ListView.Types, FMX.ListView;
 
 type
   Tfra_Session = class(TFrame)
-    lyt1: TLayout;
-    lyt2: TLayout;
-    lyt3: TLayout;
+    lyt_SendContent: TLayout;
+    lyt_Top: TLayout;
+    lyt6: TLayout;
     btn_Send: TButton;
     mmo_Msg: TMemo;
     tlb1: TToolBar;
-    spl1: TSplitter;
     lyt4: TLayout;
     lyt_MessageView: TLayout;
     cbb_Fonts: TComboBox;
@@ -27,36 +27,53 @@ type
     btn_Style_U: TSpeedButton;
     cbb_FontSize: TComboTrackBar;
     Rectangle1: TRectangle;
+    btn_Expression: TSpeedButton;
+    btn_AddImage: TSpeedButton;
+    btn_AddFile: TSpeedButton;
+    lyt_MsgContent: TLayout;
+    lyt_Content: TLayout;
+    lyt_GroupsContent: TLayout;
+    spl_Group: TSplitter;
+    lyt1: TLayout;
+    lv_Group: TListView;
+    lyt2: TLayout;
+    spl1: TSplitter;
+    Line1: TLine;
     procedure cbb_FontColorChange(Sender: TObject);
     procedure btn_Style_BClick(Sender: TObject);
     procedure btn_Style_IClick(Sender: TObject);
     procedure btn_Style_UClick(Sender: TObject);
     procedure cbb_FontSizeChangeTracking(Sender: TObject);
     procedure btn_SendClick(Sender: TObject);
-    procedure FrameKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
+    procedure mmo_MsgKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
   private
     FMsgView: TRTXMessageView;
     procedure Test;
     procedure TestAddItem;
     procedure InitFrame;
+    procedure ShowGroupContext(AShow: Boolean);
+    function GetFontAttr: TRTXMsgFontAttr;
   public
-    { Public declarations }
+    procedure SendMsg;
   end;
 
   /// <summary>
   ///   新建一个session
   /// </summary>
-  function CreateSessionFrame(AOwner: TComponent; AParent: TFmxObject): Tfra_Session;
+  function CreateSessionFrame(AOwner: TComponent; AParent: TFmxObject; AIsGroup: Boolean = False): Tfra_Session;
 implementation
 
 {$R *.fmx}
 
-function CreateSessionFrame(AOwner: TComponent; AParent: TFmxObject): Tfra_Session;
+uses udm_Common;
+
+function CreateSessionFrame(AOwner: TComponent; AParent: TFmxObject; AIsGroup: Boolean): Tfra_Session;
 begin
   Result := Tfra_Session.Create(AOwner);
   Result.Parent := AParent;
   Result.Align := TAlignLayout.Client;
+  Result.ShowGroupContext(AIsGroup);
   Result.InitFrame;
 end;
 
@@ -68,6 +85,8 @@ begin
     Exit;
   end;
   TestAddItem;
+  dm_RTXNetModule.RTX.SendIMMessage('', mmo_Msg.Text, GetFontAttr);
+  mmo_Msg.Text := '';
 end;
 
 procedure Tfra_Session.btn_Style_BClick(Sender: TObject);
@@ -101,15 +120,15 @@ begin
   mmo_Msg.TextSettings.Font.Size := cbb_FontSize.Value;
 end;
 
-procedure Tfra_Session.FrameKeyDown(Sender: TObject; var Key: Word;
-  var KeyChar: Char; Shift: TShiftState);
+function Tfra_Session.GetFontAttr: TRTXMsgFontAttr;
 begin
-  if Key = vkReturn then
-  begin
-    btn_Send.OnClick(btn_Send);
-    Key := 0;
-    KeyChar := #0;
-  end;
+  Result.Name := mmo_Msg.Font.Family;
+  Result.CharSet := 134;
+  Result.PAF := 0;
+  Result.Size := Trunc(mmo_Msg.Font.Size);
+  Result.YOffset := 0;
+  Result.Effects := 1073741824;
+  Result.Color := TAlphaColorRec.ColorToRGB(mmo_Msg.FontColor);
 end;
 
 procedure Tfra_Session.InitFrame;
@@ -120,6 +139,28 @@ begin
   Test;
 end;
 
+
+procedure Tfra_Session.mmo_MsgKeyDown(Sender: TObject; var Key: Word;
+  var KeyChar: Char; Shift: TShiftState);
+begin
+//  if Key = vkReturn then
+//  begin
+//    SendMsg;
+//    Key := 0;
+//    KeyChar := #0;
+//  end;
+end;
+
+procedure Tfra_Session.SendMsg;
+begin
+  btn_Send.OnClick(btn_Send);
+end;
+
+procedure Tfra_Session.ShowGroupContext(AShow: Boolean);
+begin
+  lyt_GroupsContent.Visible := AShow;
+  spl_Group.Visible := AShow;
+end;
 
 procedure Tfra_Session.Test;
 var

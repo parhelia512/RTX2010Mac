@@ -6,6 +6,23 @@
     <ItemGroup Condition="'$(Platform)'=='iOSDevice32'"/>
     <ItemGroup Condition="'$(Platform)'=='Android'"/>
     <ItemGroup Condition="'$(Platform)'=='Win32'">
+        <DeployFile Include="RTX.inc" Condition="'$(Config)'=='Release'">
+            <RemoteDir>RTX2010\</RemoteDir>
+            <RemoteName>RTX.inc</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="Win32\Release\RTX2010.exe" Condition="'$(Config)'=='Release'">
+            <RemoteDir>RTX2010\</RemoteDir>
+            <RemoteName>RTX2010.exe</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+            <Required>True</Required>
+        </DeployFile>
         <DeployFile Include="Win32\Debug\RTX2010.exe" Condition="'$(Config)'=='Debug'">
             <RemoteDir>RTX2010\</RemoteDir>
             <RemoteName>RTX2010.exe</RemoteName>
@@ -19,6 +36,22 @@
     <ItemGroup Condition="'$(Platform)'=='iOSDevice64'"/>
     <ItemGroup Condition="'$(Platform)'=='Win64'"/>
     <ItemGroup Condition="'$(Platform)'=='OSX32'">
+        <DeployFile Include="OSX32\Debug\RTX2010.info.plist" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>RTX2010.app\Contents\</RemoteDir>
+            <RemoteName>Info.plist</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="OSX32\Debug\RTX2010.entitlements" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>RTX2010.app\../\</RemoteDir>
+            <RemoteName>Entitlements.plist</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
         <DeployFile Include="$(BDS)\bin\delphi_PROJECTICNS.icns" Condition="'$(Config)'=='Debug'">
             <RemoteDir>RTX2010.app\Contents\Resources\</RemoteDir>
             <RemoteName>RTX2010Mac.icns</RemoteName>
@@ -85,14 +118,6 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="OSX32\Debug\RTX2010.info.plist" Condition="'$(Config)'=='Debug'">
-            <RemoteDir>RTX2010.app\Contents\</RemoteDir>
-            <RemoteName>Info.plist</RemoteName>
-            <Operation>1</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
         <DeployFile Include="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib">
             <RemoteDir>RTX2010.app\Contents\MacOS\</RemoteDir>
             <RemoteName>libcgunwind.1.0.dylib</RemoteName>
@@ -101,10 +126,10 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="OSX32\Debug\RTX2010.entitlements" Condition="'$(Config)'=='Debug'">
-            <RemoteDir>RTX2010.app\../\</RemoteDir>
-            <RemoteName>Entitlements.plist</RemoteName>
-            <Operation>1</Operation>
+        <DeployFile Include="RTX.inc" Condition="'$(Config)'=='Release'">
+            <RemoteDir>RTX2010.app\</RemoteDir>
+            <RemoteName>RTX.inc</RemoteName>
+            <Operation>0</Operation>
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>

@@ -2,10 +2,12 @@ object frm_Setting: Tfrm_Setting
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu]
+  BorderStyle = Single
   Caption = #20559#22909#37197#32622
   ClientHeight = 165
   ClientWidth = 362
-  Position = OwnerFormCenter
+  Position = ScreenCenter
+  FormStyle = StayOnTop
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]

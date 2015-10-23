@@ -481,12 +481,13 @@ object frm_Login: Tfrm_Login
       Size.PlatformDefault = False
     end
     object btn_Setting: TSpeedButton
-      Position.X = 183.000000000000000000
+      Images = dm_Common.il_common
+      ImageIndex = 1
+      Position.X = 197.000000000000000000
       Position.Y = 225.000000000000000000
-      Size.Width = 36.000000000000000000
+      Size.Width = 22.000000000000000000
       Size.Height = 18.000000000000000000
       Size.PlatformDefault = False
-      Text = #35774#32622
       OnClick = btn_SettingClick
     end
   end

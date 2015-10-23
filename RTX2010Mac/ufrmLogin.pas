@@ -67,7 +67,7 @@ implementation
 
 {$R *.fmx}
 
-uses uGlobalDef, uRTXNetModule, uDebug, ufrmSetting;
+uses uGlobalDef, uRTXNetModule, uDebug, ufrmSetting, udm_Common;
 
 procedure Tfrm_Login.btn_CancelClick(Sender: TObject);
 begin
@@ -97,7 +97,7 @@ end;
 
 procedure Tfrm_Login.btn_SettingClick(Sender: TObject);
 begin
-  frm_Setting.ShowModal;
+  frm_Setting.Show;
 end;
 
 procedure Tfrm_Login.chk_AutoLoginChange(Sender: TObject);

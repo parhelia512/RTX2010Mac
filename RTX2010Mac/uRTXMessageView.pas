@@ -110,6 +110,7 @@ begin
   FUsrText.TextSettings.FontColor := $FF646363;
   FUsrText.Margins.Right := MLEN;
   FUsrText.TextSettings.WordWrap := False;
+  FUsrText.TextSettings.Font.Size := 10;
 
   FTime := TText.Create(FLayoutContent);
   FTime.Parent := FLayoutContent;
@@ -269,7 +270,7 @@ begin
       FUsrText.TextSettings.HorzAlign := TTextAlign.Trailing;
       FTime.Margins.Right := MLEN + 15;
       FTime.Margins.Left := 0;
-      FTime.TextSettings.HorzAlign := TTextAlign.Trailing;
+      FTime.TextSettings.HorzAlign := TTextAlign.Center;
 
       FCRectangle.Fill.Color := $FFB5DDF7;
       FCRectangle.CalloutPosition := TCalloutPosition.Right;
@@ -290,7 +291,7 @@ begin
 
       FTime.Margins.Right := 0;
       FTime.Margins.Left := MLEN;
-      FTime.TextSettings.HorzAlign := TTextAlign.Leading;
+      FTime.TextSettings.HorzAlign := TTextAlign.Center;
 
       FCRectangle.Fill.Color := $FFE3E7EE;
       FCRectangle.CalloutPosition := TCalloutPosition.Left;
@@ -376,7 +377,7 @@ var
   LTop: Single;
   I: Integer;
 begin
-  LTop := 0;
+  LTop := 10;
   Self.BeginUpdate;
   try
     for I := 0 to FItems.Count - 1 do
@@ -384,7 +385,7 @@ begin
       FItems[I].Width := Self.Width;
       FItems[I].Position.X := 0;
       FItems[I].Position.Y := LTop;
-      LTop := LTop + FItems[I].Height + 3;
+      LTop := LTop + FItems[I].Height + 5;
     end;
   finally
     Self.EndUpdate;

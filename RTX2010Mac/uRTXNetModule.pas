@@ -52,6 +52,7 @@ type
     /// </summary>
     procedure CancelLogin;
   public
+    property RTX: TRTXPacket read FRTXPacket;
     // 主窗口事件指向
     property RTXOnMainFormLoginResult: TRTXLoginResultEvent read FRTXOnMainFormLoginResult write FRTXOnMainFormLoginResult;
     property RTXOnMainFormIMMessage: TRTXIMMessageEvent read FRTXOnMainFormIMMessage write FRTXOnMainFormIMMessage;
