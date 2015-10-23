@@ -1,5 +1,13 @@
 inherited frm_Main_Macintosh: Tfrm_Main_Macintosh
   DesignerMasterStyle = 1
+  inherited mm_Main: TMainMenu
+    inherited MenuItem1: TMenuItem
+      inherited MenuItem3: TMenuItem [3]
+      end
+      inherited MenuItem7: TMenuItem [4]
+      end
+    end
+  end
   inherited lyt_Session: TLayout
     inherited tbc1: TTabControl
       inherited TabItem1: TTabItem
@@ -10,12 +18,12 @@ inherited frm_Main_Macintosh: Tfrm_Main_Macintosh
       inherited TabItem2: TTabItem
         inherited tv1: TTreeView
           Viewport.Width = 256.000000000000000000
-          Viewport.Height = 381.000000000000000000
+          Viewport.Height = 389.000000000000000000
         end
       end
     end
   end
-  inherited actlst1: TActionList
+  inherited actlst: TActionList
     inherited act_Status_Online: TAction
       ImageIndex = 0
     end

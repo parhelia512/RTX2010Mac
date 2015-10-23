@@ -23,7 +23,17 @@ uses
   FMX.Controls.Presentation, FMX.Menus, System.Actions, FMX.ActnList,
   FMX.ScrollBox, FMX.Memo, FMX.TabControl, FMX.ExtCtrls, FMX.ListView.Types,
   FMX.ListView, uSessionFrame, System.ImageList, FMX.ImgList, FMX.Notification,
-  System.Hash;
+  System.Hash, FMX.MultiResBitmap, System.TypInfo
+{$IFDEF MACOS}
+  ,Macapi.AppKit
+  ,Macapi.Helpers
+  ,Macapi.Foundation
+  ,Macapi.CocoaTypes
+  ,Macapi.ObjCRuntime
+  ,Macapi.ObjectiveC
+  ,FMX.Helpers.Mac
+  ,FMX.Platform.Mac
+{$ENDIF};
 
 type
   Tfrm_Main = class(TForm)
@@ -34,7 +44,7 @@ type
     MenuItem9: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem3: TMenuItem;
-    actlst1: TActionList;
+    actlst: TActionList;
     act_About: TAction;
     act_ExitApp: TAction;
     act_Setting: TAction;
@@ -55,7 +65,7 @@ type
     trvwtm1: TTreeViewItem;
     trvwtm2: TTreeViewItem;
     trvwtm3: TTreeViewItem;
-    stylbk1: TStyleBook;
+    stylbk: TStyleBook;
     Line1: TLine;
     pm_Status: TPopupMenu;
     act_Status_Online: TAction;
@@ -67,7 +77,7 @@ type
     MenuItem6: TMenuItem;
     btn_ChangeStatus: TSpeedButton;
     NotificationCenter: TNotificationCenter;
-    btn1: TButton;
+    MenuItem7: TMenuItem;
     procedure act_ExitAppExecute(Sender: TObject);
     procedure act_AboutExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -77,11 +87,16 @@ type
     procedure act_Status_OfflineExecute(Sender: TObject);
     procedure act_Status_AwayExecute(Sender: TObject);
     procedure btn_ChangeStatusClick(Sender: TObject);
-    procedure btn1Click(Sender: TObject);
     procedure NotificationCenterReceiveLocalNotification(Sender: TObject;
       ANotification: TNotification);
+    procedure FormDestroy(Sender: TObject);
   private
     FTestView: Tfra_Session;
+  {$IFDEF MACOS}
+    FNSStatusItem: NSStatusItem;
+//    FMenuBarIcon: NSImage;
+//    FMenuBarActive: NSImage;
+  {$ENDIF}
   private
     procedure OnRTXIMMessage(Sender: TObject; const AFrom, ATo, ABody: string);
     procedure OnRTXLoginResult(Sender: TObject; AStatus: Integer);
@@ -96,6 +111,9 @@ type
     ///   发送通知
     /// </summary>
     procedure SendNotification(const ATitle, AText: string);
+
+    procedure SetStatusItem;
+    procedure StatusItemClick(sender: ID);
   public
     { Public declarations }
   end;
@@ -109,6 +127,60 @@ implementation
 {$R *.Macintosh.fmx MACOS}
 
 uses uRTXNetModule, ufrmAbout, uDebug, ufrmSetting, uGlobalDef;
+
+{$IFDEF MACOS}
+type
+  // cocoa的单击。。貌似看着蛋疼啊
+  CocoaClick = interface(NSObject)
+  ['{7EF52321-75D3-4A58-9E70-C539DCF9EE87}']
+    procedure click(sender: ID); cdecl;
+    procedure release; cdecl;
+  end;
+
+  TClickProc = procedure(sender: ID) of object;
+
+  TCocoaClick = class(TOCLocal)
+  private
+    FFunc : TClickProc;
+  public
+    function GetObjectiveCClass: PTypeInfo; override;
+    procedure click(sender: ID); cdecl;
+    procedure SetClickFunc(AFunc: TClickProc);
+    procedure release; cdecl;
+  end;
+
+{ TCocoaClick }
+
+procedure TCocoaClick.click(sender: ID);
+begin
+   if Assigned(@FFunc) then
+  try
+    FFunc(sender);
+  except
+    HandleException(nil);
+  end;
+end;
+
+function TCocoaClick.GetObjectiveCClass: PTypeInfo;
+begin
+  Result := TypeInfo(CocoaClick);
+end;
+
+procedure TCocoaClick.release;
+var
+  RC: Integer;
+begin
+  RC := NSObject(Super).retainCount;
+  NSObject(Super).release;
+  if RC = 1 then
+    Destroy;
+end;
+
+procedure TCocoaClick.SetClickFunc(AFunc: TClickProc);
+begin
+  FFunc := AFunc;
+end;
+{$ENDIF}
 
 /// <summary>
 ///   发送通知用的
@@ -148,11 +220,6 @@ begin
 //
 end;
 
-procedure Tfrm_Main.btn1Click(Sender: TObject);
-begin
-  SendNotification('测试', '测试通知');
-end;
-
 procedure Tfrm_Main.btn_ChangeStatusClick(Sender: TObject);
 var
   P: TPointF;
@@ -168,6 +235,7 @@ end;
 
 procedure Tfrm_Main.FormCreate(Sender: TObject);
 begin
+  SetStatusItem;
   TestListView;
   DBG('Tfrm_Main.FormCreate');
   if Assigned(dm_RTXNetModule) then
@@ -176,6 +244,15 @@ begin
     dm_RTXNetModule.RTXOnMainFormLoginResult := OnRTXLoginResult;
   end;
   FTestView := CreateSessionFrame(Self, lyt_MessageView);
+end;
+
+procedure Tfrm_Main.FormDestroy(Sender: TObject);
+begin
+{$IFDEF MACOS}
+//  FMenuBarIcon.release;
+//  FMenuBarActive.release;
+  FNSStatusItem.release;
+{$ENDIF}
 end;
 
 procedure Tfrm_Main.NotificationCenterReceiveLocalNotification(Sender: TObject;
@@ -234,6 +311,52 @@ begin
   end;
 end;
 
+procedure Tfrm_Main.SetStatusItem;
+{$IFDEF MACOS}
+//var
+//   AutoReleasePool: NSAutoreleasePool;
+//   LBitmapItem: TCustomBitmapItem;
+//   LSize: TSize;
+//   LData: TBitmapData;
+//   LNSize: NSSize;
+//   LNSData: NSData;
+{$ENDIF}
+begin
+{$IFDEF MACOS}
+  FNSStatusItem := TNSStatusBar.Wrap(TNSStatusBar.OCClass.systemStatusBar).statusItemWithLength(NSVariableStatusItemLength);
+  FNSStatusItem.setHighlightMode(True);
+  FNSStatusItem.setTitle(StrToNSStr('RTX'));
+  FNSStatusItem.setToolTip(StrToNSStr('RTX2010 for Mac'));
+
+  // 有待弄。。。。还没整明白
+
+ { il_Status.BitmapItemByName('menubar_icon', LBitmapItem, LSize);
+  if not LBitmapItem.IsEmpty then
+  begin
+    LBitmapItem.Bitmap.Map(TMapAccess.Read, LData);
+    try
+      LNSize.width := LSize.Width;
+      LNSize.height := LSize.Height;
+      LNSData := TNSData.Wrap(TNSData.Alloc.initWithBytes(LData.Data, LData.Width * LData.Height));
+      FMenuBarIcon := TNSImage.Wrap(TNSImage.Alloc.initWithData(LNSData));
+      FNSStatusItem.setImage(FMenuBarIcon);
+//      LNSData.release;
+    finally
+      LBitmapItem.Bitmap.Unmap(LData);
+    end;
+  end;    }
+
+//il_Status.BitmapItemByName('menubar_icon_active', LBitmapItem, LSize);
+//FMenuBarActive := TNSImage.Wrap(TNSImage.Alloc.initWithContentsOfFile(StrToNSStr('RTX2010.icns')));
+
+{$ENDIF}
+end;
+
+procedure Tfrm_Main.StatusItemClick(sender: ID);
+begin
+
+end;
+
 procedure Tfrm_Main.TestListView;
 var
   LItem: TListViewItem;
@@ -245,6 +368,7 @@ begin
   LItem := lv1.Items.Add;
   LItem.Text := '测试2';
 end;
+
 
 initialization
 {$IFDEF MSWINDOWS}

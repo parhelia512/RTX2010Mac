@@ -483,7 +483,7 @@ object frm_Login: Tfrm_Login
     object btn_Setting: TSpeedButton
       Images = dm_Common.il_common
       ImageIndex = 1
-      Position.X = 197.000000000000000000
+      Position.X = 198.000000000000000000
       Position.Y = 225.000000000000000000
       Size.Width = 22.000000000000000000
       Size.Height = 18.000000000000000000

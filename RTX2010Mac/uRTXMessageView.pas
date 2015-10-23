@@ -21,6 +21,9 @@ type
     FIsMe: Boolean;
     FText: string;
     FUserName: string;
+    /// 只支持一张么。。。。。这也貌似不好吧
+    /// 先放着吧，以后再想想怎么做好些
+    FImage: TImage;
 
     // 这里先用这个蛋疼的方式代替下，以后再弄吧
     FXX: TText;
@@ -31,12 +34,12 @@ type
     FFontName: string;
     FFontColor: TAlphaColor;
     FFontStyles: TFontStyles;
+    FIsImage: Boolean;
+    FImageFile: string;
     procedure SetIsMe(const Value: Boolean);
     procedure SetText(const Value: string);
     procedure AdjustSize;
-
     function GetTextSize2(AControl: TText): TSizeF;
-
     procedure SetUserName(const Value: string);
     procedure SetCTime(const Value: TDateTime);
     procedure SetNickName(const Value: string);
@@ -44,6 +47,7 @@ type
     procedure SetFontName(const Value: string);
     procedure SetFontSize(const Value: Integer);
     procedure SetFontStyles(const Value: TFontStyles);
+    procedure SetImageFile(const Value: string);
   protected
     procedure Resize;override;
   public
@@ -54,6 +58,8 @@ type
     property NickName: string read FNickName write SetNickName;
     property CTime: TDateTime read FCTime write SetCTime;
     property IsMe: Boolean read FIsMe write SetIsMe;
+    property IsImage: Boolean read FIsImage write FIsImage;
+    property ImageFile: string read FImageFile write SetImageFile;
     property Text: string read FText write SetText;
     property FontColor: TAlphaColor read FFontColor write SetFontColor;
     property FontSize: Integer read FFontSize write SetFontSize;
@@ -248,6 +254,14 @@ begin
   begin
     FFontStyles := Value;
     FContentText.TextSettings.Font.Style := FFontStyles;
+  end;
+end;
+
+procedure TRTXMessageItem.SetImageFile(const Value: string);
+begin
+  if FImageFile <> '' then
+  begin
+    FImageFile := Value;
   end;
 end;
 
