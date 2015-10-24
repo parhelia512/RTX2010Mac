@@ -8,7 +8,8 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.ExtCtrls,
   Vcl.StdCtrls, Winapi.TlHelp32, Winapi.ShellAPI, Vcl.Menus,
   System.Actions, Vcl.ActnList, System.Generics.Collections,
-  QQTEA, CnHexEditor, Vcl.Clipbrd, uCommon;
+  QQTEA, CnHexEditor, Vcl.Clipbrd, uCommon, uBytesHelper,
+  Winapi.Winsock2, uRTXPacketRWriter, CnMD5, System.Math, uBufferFile;
 
 
 
@@ -66,6 +67,12 @@ type
     N0C001: TMenuItem;
     N0C011: TMenuItem;
     act_msg_0C02: TAction;
+    act_CopyPacketData: TAction;
+    act_CopyPacketBodyData: TAction;
+    N3: TMenuItem;
+    HEX1: TMenuItem;
+    HEX2: TMenuItem;
+    HEX3: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure btn_refprocessClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -85,6 +92,9 @@ type
     procedure act_MakeCommetFileExecute(Sender: TObject);
     procedure act_SaveBufferExecute(Sender: TObject);
     procedure act_LoadBufferExecute(Sender: TObject);
+    procedure act_CopyPacketDataUpdate(Sender: TObject);
+    procedure act_CopyPacketDataExecute(Sender: TObject);
+    procedure act_CopyPacketBodyDataExecute(Sender: TObject);
   private
     FHandle: THandle;
     FPid: THandle;
@@ -113,20 +123,6 @@ var
 implementation
 
 {$R *.dfm}
-
-uses Winapi.Winsock2, uRTXPacketRWriter, uBytesHelper, CnMD5, System.Math,
-  uBufferFile;
-
-
-function BytesToString(const ABytes: TBytes): string;
-var
-  B: Byte;
-begin
-  Result := '';
-  for B in ABytes do
-    Result := Result + B.ToHexString(2) + ' ';
-  Result := Result.Trim;
-end;
 
 function Passkey2(APassword: string): TBytes;
 {$IF Defined(MSWINDOWS) and not Defined(DelphiXE8)}
@@ -209,9 +205,30 @@ begin
   end;
 end;
 
-procedure Tfrm_RTXPacket.act_hex_copyselExecute(Sender: TObject);
+procedure Tfrm_RTXPacket.act_CopyPacketBodyDataExecute(Sender: TObject);
 begin
-  Clipboard.AsText := FHexEditor.SelText;
+  Clipboard.AsText := TBytes.ToHexString(FPackets[lv1.ItemIndex].Data);
+end;
+
+procedure Tfrm_RTXPacket.act_CopyPacketDataExecute(Sender: TObject);
+begin
+  Clipboard.AsText := TBytes.ToHexString(FPackets[lv1.ItemIndex].TestBytes);
+end;
+
+procedure Tfrm_RTXPacket.act_CopyPacketDataUpdate(Sender: TObject);
+begin
+  TAction(Sender).Enabled := lv1.ItemIndex <> -1;
+end;
+
+procedure Tfrm_RTXPacket.act_hex_copyselExecute(Sender: TObject);
+var
+  LBytes: TBytes;
+begin
+  if FHexEditor.SelLength = 0 then Exit;
+  SetLength(LBytes, FHexEditor.SelLength);
+  FHexEditor.MemoryStream.Position := FHexEditor.SelStart;
+  FHexEditor.MemoryStream.Read(LBytes, 0, LBytes.Length);
+  Clipboard.AsText := LBytes.ToHexString;
 end;
 
 procedure Tfrm_RTXPacket.act_LoadBufferExecute(Sender: TObject);
@@ -228,7 +245,7 @@ begin
         AddToListView(LItem);
       SetLength(FSessionKey, $10);
       FSessionKey := LFile.SessionKey;
-      edt_SessionKey.Text := BytesToString(FSessionKey);
+      edt_SessionKey.Text := FSessionKey.ToHexString;
     finally
       LFile.Free;
     end;
@@ -321,7 +338,7 @@ begin
       begin
         SetLength(FTouchKey, $10);
         Move(LData.Data[0], FTouchKey[0], FTouchKey.Length);
-        edt_TouchKey.Text := BytesToString(FTouchKey);
+        edt_TouchKey.Text := FTouchKey.ToHexString;
       end;
     end else if (LData.Cmd = $401) and (not LData.IsSend) then
     begin
@@ -333,7 +350,7 @@ begin
       begin
         SetLength(FSessionKey, $10);
         Move(LTEADeData[4], FSessionKey[0], $10);
-        edt_SessionKey.Text := BytesToString(FSessionKey);
+        edt_SessionKey.Text := FSessionKey.ToHexString;
       end else
       begin
         OutputDebugString('PassKey2 decrypt faild.');
@@ -342,7 +359,7 @@ begin
         begin
           SetLength(FSessionKey, $10);
           Move(LTEADeData[4], FSessionKey[0], $10);
-          edt_SessionKey.Text := BytesToString(FSessionKey);
+          edt_SessionKey.Text := FSessionKey.ToHexString;
         end else OutputDebugString('NameKey decrypt faild.');
       end;
     end;
@@ -452,19 +469,6 @@ begin
     FHexEditor.LoadFromBuffer(FPackets[lv1.ItemIndex].TestBytes[0], FPackets[lv1.ItemIndex].TestBytes.Length);
 end;
 
-
-{
-      $0400 :
-        begin
-          if LItem.IsSend then
-          begin
-
-          end else
-          begin
-
-          end;
-        end;
-}
 procedure Tfrm_RTXPacket.MakeCommentFile;
 var
   LRTXData: TRTXStream;
@@ -510,7 +514,7 @@ var
 
   procedure WBytesStr(adata: TBytes; const acomment: string);
   begin
-    WStr(BytesToString(adata), acomment);
+    WStr(adata.ToHexString, acomment);
   end;
 
 begin
@@ -713,8 +717,6 @@ begin
   cbb_ProcessList.Items.EndUpdate;
   CloseHandle(FSnapShotHandle);
 end;
-
-
 
 procedure Tfrm_RTXPacket.UnjectDll;
 var

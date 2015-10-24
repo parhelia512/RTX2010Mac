@@ -23,6 +23,8 @@ type
     function GetLength: Integer;
     function GetHigh: Integer;
   public
+    function ToHexString: string; overload;
+    class function ToHexString(ABytes: TBytes): string; overload; static;
     property Length: Integer read GetLength;
     property High: Integer read GetHigh;
   end;
@@ -39,6 +41,21 @@ end;
 function TBytesHelper.GetLength: Integer;
 begin
   Result := Length(Self);
+end;
+
+class function TBytesHelper.ToHexString(ABytes: TBytes): string;
+begin
+  Result := ABytes.ToHexString;
+end;
+
+function TBytesHelper.ToHexString: string;
+var
+  B: Byte;
+begin
+  Result := '';
+  for B in Self do
+    Result := Result + B.ToHexString(2) + ' ';
+  Result := Result.Trim;
 end;
 
 end.

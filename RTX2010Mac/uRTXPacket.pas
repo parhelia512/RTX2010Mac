@@ -38,6 +38,9 @@ uses
   uRTXXMLData;
 
 type
+  /// <summary>
+  ///   RTX封包数据头
+  /// </summary>
   TRTXDataHead = packed record
     Head: Byte;
     Len: Word;
@@ -88,6 +91,7 @@ type
   TRTXIMMessageEvent = procedure(Sender: TObject; const AFrom, ATo, ABody: string) of object;
   TRTXLoginResultEvent = procedure(Sender: TObject; AStatus: Integer) of object;
   TRTXStatusChangedEvent = procedure(Sender: TObject; AList: TRTXStatusList) of object;
+  TRTXIMMsgStatusEvent = procedure(Sender: TObject; AStatus: Integer) of object;
 
   TRTXPacket = class(TComponent)
   public
@@ -153,6 +157,7 @@ type
     FAuthType: Integer;
     FNextSeq: Word;
     FPassword : string;
+    FOnIMMsgStatus: TRTXIMMsgStatusEvent;
 
     function RandKey: TBytes;
     function GetTimestamp: Cardinal;
@@ -188,7 +193,7 @@ type
     procedure DeleteSession(const AKey: string);
   published
     property Socket: {$IFDEF USEIDTCP}TIdTCPClient{$ELSE}TClientSocket{$ENDIF} read FSocket write SetSocket;
-
+    property OnIMMsgStatus: TRTXIMMsgStatusEvent read FOnIMMsgStatus write FOnIMMsgStatus;
     property OnStatusChanged: TRTXStatusChangedEvent read FOnStatusChanged write FOnStatusChanged;
     property OnError: TRTXErrorEvent read FOnError write FOnError;
     property OnIMMessage: TRTXIMMessageEvent read FOnIMMessage write FOnIMMessage;
@@ -637,8 +642,8 @@ begin
       LRTXData.Free;
     end;
   end;
-  PrintBytes(LDe, 'TEADeCrypt Process_080E');
-  DBG('Process_080E Text=' + StringOf(LDe));
+//  PrintBytes(LDe, 'TEADeCrypt Process_080E');
+//  DBG('Process_080E Text=' + StringOf(LDe));
 end;
 
 procedure TRTXPacket.Process_0C00(Data: TBytes);
@@ -646,8 +651,13 @@ var
   LTEADeData: TBytes;
 begin
   LTEADeData := QQTEADeCrypt(Data, FSessionKey);
-  if LTEADeData<> nil then
+  if LTEADeData <> nil then
+  begin
+    // 第一字节为状态，2为在线消息成功，5貌似是离线消息成功
+    if Assigned(FOnIMMsgStatus) then
+      FOnIMMsgStatus(Self, LTEADeData[0]);
     DBG('send msg reply: ' + LTEADeData[0].ToString)
+  end
   else DBG('send msg reply decrypt data error.');
 end;
 

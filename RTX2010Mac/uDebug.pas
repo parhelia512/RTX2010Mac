@@ -51,11 +51,7 @@ begin
   S := '';
   for B in ABytes do
     S := S + B.ToHexString(2) + ' ';
-{$IFDEF MSWINDOWS}
-  OutputDebugString(PChar(AText + '=' + S));
-{$ELSE}
-  Log.d(AText + '=' + S);
-{$ENDIF}
+  DBG(AText + '=' + S);
 end;
 
 end.

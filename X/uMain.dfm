@@ -351,6 +351,15 @@ object frm_RTXPacket: Tfrm_RTXPacket
     object N2: TMenuItem
       Caption = '-'
     end
+    object HEX1: TMenuItem
+      Action = act_CopyPacketBodyData
+    end
+    object HEX2: TMenuItem
+      Action = act_CopyPacketData
+    end
+    object N3: TMenuItem
+      Caption = '-'
+    end
     object N0C001: TMenuItem
       Action = act_msg_0C00
     end
@@ -381,7 +390,7 @@ object frm_RTXPacket: Tfrm_RTXPacket
     end
     object act_hex_copysel: TAction
       Category = 'HexEditor'
-      Caption = #22797#21046#36873#25321
+      Caption = #22797#21046#36873#25321'(HEX)'
       OnExecute = act_hex_copyselExecute
     end
     object act_converttotext: TAction
@@ -411,12 +420,25 @@ object frm_RTXPacket: Tfrm_RTXPacket
     object act_msg_0C02: TAction
       Caption = #22788#29702'0C02'
     end
+    object act_CopyPacketData: TAction
+      Caption = #22797#21046#23436#25972#25968#25454#21253'(HEX)'
+      OnExecute = act_CopyPacketDataExecute
+      OnUpdate = act_CopyPacketDataUpdate
+    end
+    object act_CopyPacketBodyData: TAction
+      Caption = #22797#21046#20027#20307#25968#25454#21253'(HEX)'
+      OnExecute = act_CopyPacketBodyDataExecute
+      OnUpdate = act_CopyPacketDataUpdate
+    end
   end
   object pm_HexEditor: TPopupMenu
     Left = 616
     Top = 216
     object N1: TMenuItem
       Action = act_converttotext
+    end
+    object HEX3: TMenuItem
+      Action = act_hex_copysel
     end
   end
   object dlgOpen1: TOpenDialog
