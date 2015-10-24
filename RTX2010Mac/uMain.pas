@@ -113,7 +113,7 @@ type
     procedure SendNotification(const ATitle, AText: string);
 
     procedure SetStatusItem;
-    procedure StatusItemClick(sender: ID);
+//    procedure StatusItemClick(sender: ID);
   public
     { Public declarations }
   end;
@@ -352,10 +352,10 @@ begin
 {$ENDIF}
 end;
 
-procedure Tfrm_Main.StatusItemClick(sender: ID);
-begin
-
-end;
+//procedure Tfrm_Main.StatusItemClick(sender: ID);
+//begin
+//
+//end;
 
 procedure Tfrm_Main.TestListView;
 var

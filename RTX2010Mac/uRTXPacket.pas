@@ -67,9 +67,27 @@ type
   end;
 
 
+  /// <summary>
+  ///   0离线了, 1在线, 2离开状态
+  /// </summary>
+  TRTXStatusType = (rstOffline, rstOnline, rstAway);
+
+  /// <summary>
+  ///   状态改变
+  /// </summary>
+  TRTXStatusRec = record
+    Id: Integer;
+    Status: TRTXStatusType;
+  public
+    constructor Create(AId: Integer; AStatus: TRTXStatusType);
+  end;
+
+  TRTXStatusList = class(TList<TRTXStatusRec>);
+
   TRTXErrorEvent = procedure(Sender: TObject; const AError: string; ACode: Integer) of object;
   TRTXIMMessageEvent = procedure(Sender: TObject; const AFrom, ATo, ABody: string) of object;
   TRTXLoginResultEvent = procedure(Sender: TObject; AStatus: Integer) of object;
+  TRTXStatusChangedEvent = procedure(Sender: TObject; AList: TRTXStatusList) of object;
 
   TRTXPacket = class(TComponent)
   public
@@ -109,6 +127,7 @@ type
     FOnError: TRTXErrorEvent;
     FOnIMMessage: TRTXIMMessageEvent;
     FOnLoginResult: TRTXLoginResultEvent;
+    FOnStatusChanged: TRTXStatusChangedEvent;
    {$IFDEF USEIDTCP}
     FSocket: TIdTCPClient;
    {$ELSE}
@@ -134,6 +153,7 @@ type
     FAuthType: Integer;
     FNextSeq: Word;
     FPassword : string;
+
     function RandKey: TBytes;
     function GetTimestamp: Cardinal;
     procedure SendIMMessageToMainForm(const AFrom, ATo, ABody: string);
@@ -167,7 +187,9 @@ type
     procedure SendIMMessage(const ATo, AMsg: string; AFont: TRTXMsgFontAttr);
     procedure DeleteSession(const AKey: string);
   published
-    property Socket: {$IFDEF USEIDTCP}TIdTCPClient{$ELSE}TClientSocket{$ENDIF} read FSocket  write SetSocket;
+    property Socket: {$IFDEF USEIDTCP}TIdTCPClient{$ELSE}TClientSocket{$ENDIF} read FSocket write SetSocket;
+
+    property OnStatusChanged: TRTXStatusChangedEvent read FOnStatusChanged write FOnStatusChanged;
     property OnError: TRTXErrorEvent read FOnError write FOnError;
     property OnIMMessage: TRTXIMMessageEvent read FOnIMMessage write FOnIMMessage;
     property OnLogResult: TRTXLoginResultEvent read FOnLoginResult write FOnLoginResult;
@@ -224,11 +246,6 @@ destructor TRTXPacket.Destroy;
 begin
   FSessionSenders.Free;
   FSessions.Free;
-  {SetLength(FSessionKey, 0);
-  SetLength(FTouchKey, 0);
-  SetLength(FNameKey3, 0);
-  SetLength(FPassKey1, 0);
-  SetLength(FPassKey2, 0);}
   inherited;
 end;
 
@@ -584,6 +601,9 @@ end;
 procedure TRTXPacket.Process_080E(Data: TBytes);
 var
   LDe: TBytes;
+  LStatus: TRTXStatusList;
+  LCount, I: Integer;
+  LRTXData: TRTXStream;
 begin
   LDe := QQTEADeCrypt(Data, FSessionKey);
   // 00 01 改变的人数
@@ -595,10 +615,28 @@ begin
   // 02 00         2
   // 00 00 03 EB   1003
   // 02 00         2
-
-
   // 00 01 00 00 03 E9 01 00
   // 00 01 00 00 03 E9 00 00
+  if Assigned(FOnStatusChanged) then
+  begin
+    LRTXData := TRTXStream.Create(LDe);
+    try
+      LCount := LRTXData.ReadWord;
+      if LCount > 0 then
+      begin
+        LStatus := TRTXStatusList.Create;
+        try
+          for I := 1 to LCount do
+            LStatus.Add(TRTXStatusRec.Create(LRTXData.ReadCardinal, TRTXStatusType(LRTXData.ReadWord)));
+          FOnStatusChanged(Self, LStatus);
+        finally
+          LStatus.Free;
+        end;
+      end;
+    finally
+      LRTXData.Free;
+    end;
+  end;
   PrintBytes(LDe, 'TEADeCrypt Process_080E');
   DBG('Process_080E Text=' + StringOf(LDe));
 end;
@@ -840,6 +878,14 @@ begin
   Self.Identifier := AIdentifier;
   Self.Cmd := '';
   Self.im_message_id := '';
+end;
+
+{ TStatusRec }
+
+constructor TRTXStatusRec.Create(AId: Integer; AStatus: TRTXStatusType);
+begin
+  Id := AId;
+  Status := AStatus;
 end;
 
 end.

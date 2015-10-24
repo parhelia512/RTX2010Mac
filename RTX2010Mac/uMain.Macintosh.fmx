@@ -1,13 +1,5 @@
 inherited frm_Main_Macintosh: Tfrm_Main_Macintosh
   DesignerMasterStyle = 1
-  inherited mm_Main: TMainMenu
-    inherited MenuItem1: TMenuItem
-      inherited MenuItem3: TMenuItem [3]
-      end
-      inherited MenuItem7: TMenuItem [4]
-      end
-    end
-  end
   inherited lyt_Session: TLayout
     inherited tbc1: TTabControl
       inherited TabItem1: TTabItem

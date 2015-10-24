@@ -134,14 +134,6 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="RTX.inc" Condition="'$(Config)'=='Release'">
-            <RemoteDir>RTX2010.app\</RemoteDir>
-            <RemoteName>RTX.inc</RemoteName>
-            <Operation>0</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
     </ItemGroup>
     <ItemGroup Condition="'$(Platform)'=='iOSSimulator'">
         <DeployFile Include="$(BDS)\Redist\iossim32\libcgunwind.1.0.dylib">
