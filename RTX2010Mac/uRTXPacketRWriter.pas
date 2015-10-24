@@ -22,7 +22,8 @@ uses
 type
   TRTXStream = class(TStreamRWriter)
   public
-    function ReadUnicode: string;
+    function ReadUnicode: string; overload;
+    function ReadUnicode(const Len: Integer):string; overload;
     procedure WriteUnicode(const AStr: string);
     procedure SeekUnicode;
     function ReadUnicode2: string;
@@ -47,8 +48,15 @@ begin
   Result := '';
   Len := ReadByte;
   if Len > 0 then
-    Result := TEncoding.Unicode.GetString(ReadBytes(Len - 2));
+    Result := PChar(TEncoding.Unicode.GetString(ReadBytes(Len - 2)));
   ReadWord;
+end;
+
+function TRTXStream.ReadUnicode(const Len: Integer): string;
+begin
+  Result := '';
+  if Len mod 2 = 0 then
+    Result := PChar(TEncoding.Unicode.GetString(ReadBytes(Len)));
 end;
 
 function TRTXStream.ReadUnicode2: string;
@@ -58,7 +66,7 @@ begin
   Result := '';
   Len := ReadWord;
   if Len > 0 then
-    Result := TEncoding.Unicode.GetString(ReadBytes(Len - 2));
+    Result := PChar(TEncoding.Unicode.GetString(ReadBytes(Len - 2)));
   ReadWord;
 end;
 

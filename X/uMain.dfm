@@ -372,6 +372,9 @@ object frm_RTXPacket: Tfrm_RTXPacket
     object N0C022: TMenuItem
       Action = act_msg_0C02_recv
     end
+    object N04051: TMenuItem
+      Action = act_msg_0405_recv
+    end
   end
   object actlst1: TActionList
     Left = 464
@@ -398,6 +401,7 @@ object frm_RTXPacket: Tfrm_RTXPacket
       Category = 'HexEditor'
       Caption = #22797#21046#36873#25321'(HEX)'
       OnExecute = act_hex_copyselExecute
+      OnUpdate = act_hex_copyselUpdate
     end
     object act_converttotext: TAction
       Category = 'HexEditor'
@@ -446,6 +450,11 @@ object frm_RTXPacket: Tfrm_RTXPacket
       Caption = #22788#29702#25910#21040#30340'0C02'#28040#24687
       OnExecute = act_msg_0C02_recvExecute
       OnUpdate = act_msg_0C02_recvUpdate
+    end
+    object act_msg_0405_recv: TAction
+      Caption = #22788#29702#25910#21040#30340'0405'#28040#24687
+      OnExecute = act_msg_0405_recvExecute
+      OnUpdate = act_msg_0405_recvUpdate
     end
   end
   object pm_HexEditor: TPopupMenu

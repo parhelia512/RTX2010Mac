@@ -60,6 +60,7 @@ var
 begin
   if Assigned(FList) then
   begin
+    FList.Clear;
     FStream.LoadFromFile(AFileName);
     FStream.Position := 0;
     FStream.Read(LHead, Length(FILE_HEAD));

@@ -77,6 +77,8 @@ type
     N0C021: TMenuItem;
     act_msg_0C02_recv: TAction;
     N0C022: TMenuItem;
+    act_msg_0405_recv: TAction;
+    N04051: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure btn_refprocessClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -107,6 +109,9 @@ type
     procedure act_msg_0C02Update(Sender: TObject);
     procedure act_msg_0C02_recvUpdate(Sender: TObject);
     procedure act_msg_0C02_recvExecute(Sender: TObject);
+    procedure act_msg_0405_recvUpdate(Sender: TObject);
+    procedure act_msg_0405_recvExecute(Sender: TObject);
+    procedure act_hex_copyselUpdate(Sender: TObject);
   private
     FHandle: THandle;
     FPid: THandle;
@@ -130,6 +135,7 @@ type
     procedure ParseCurrent0C01Recv;
     procedure ParseCurrent0C02Send;
     procedure ParseCurrent0C02Recv;
+    procedure ParseCurrent0405Recv; // 应该是个人信息祥情
 
     procedure GetTouchKey(AData: TRTXDataRec);
     procedure GetSessionKey(AData: TRTXDataRec);
@@ -170,6 +176,16 @@ implementation
 
 090B 包发送
 01
+
+
+0811 发送
+00 00 03 E9 00 64
+00 00 03 E9 // id
+00 64 // ?难道是
+
+
+0405 发送
+帐号名 = 64字节
 
 *)
 
@@ -280,6 +296,11 @@ begin
   Clipboard.AsText := LBytes.ToHexString;
 end;
 
+procedure Tfrm_RTXPacket.act_hex_copyselUpdate(Sender: TObject);
+begin
+  TAction(Sender).Caption := Format('复制选择(HEX)(%d)', [FHexEditor.SelLength]);
+end;
+
 procedure Tfrm_RTXPacket.act_LoadBufferExecute(Sender: TObject);
 var
   LFile: TBufferFile;
@@ -309,6 +330,18 @@ end;
 procedure Tfrm_RTXPacket.act_MakeCommetFileUpdate(Sender: TObject);
 begin
   TAction(Sender).Enabled := FPackets.Count > 0;
+end;
+
+procedure Tfrm_RTXPacket.act_msg_0405_recvExecute(Sender: TObject);
+begin
+  ParseCurrent0405Recv;
+end;
+
+procedure Tfrm_RTXPacket.act_msg_0405_recvUpdate(Sender: TObject);
+begin
+  TAction(Sender).Enabled :=  (lv1.ItemIndex <> -1) and
+                              not FPackets[lv1.ItemIndex].IsSend and
+                              (FPackets[lv1.ItemIndex].Cmd = $0405);
 end;
 
 procedure Tfrm_RTXPacket.act_msg_0C00Execute(Sender: TObject);
@@ -737,6 +770,34 @@ begin
     end;
   finally
     LFile.Free;
+  end;
+end;
+
+procedure Tfrm_RTXPacket.ParseCurrent0405Recv;
+var
+  LRTXData: TRTXStream;
+  LDe: TBytes;
+begin
+  if lv1.ItemIndex <> -1 then
+  begin
+    LDe := QQTEADeCrypt(FPackets[lv1.ItemIndex].Data, FSessionKey);
+    if LDe = nil then Exit;
+    LRTXData := TRTXStream.Create(LDe);
+    try
+      mmo1.Clear;
+      AddMemoStr('%.2x // 1byte 个人感觉应该是标识', [LRTXData.ReadByte]);
+      AddMemoStr('%s // 帐号', [LRTXData.ReadUnicode(66)]);
+      AddMemoStr('%d // 帐号id', [LRTXData.ReadWord]);
+      AddMemoStr('%s // 帐号', [LRTXData.ReadUnicode(64)]);
+      AddMemoStr('%s // 名称，相当于昵称', [LRTXData.ReadUnicode(66)]);
+      AddMemoStr('%.2x // 像是标识数据结构的', [LRTXData.ReadByte]);
+      AddMemoStr('%s // 电话号码1', [LRTXData.ReadUnicode(64)]);
+      AddMemoStr('%s // 电话号码2', [LRTXData.ReadUnicode(64)]);
+      AddMemoStr('%s // 邮箱', [LRTXData.ReadUnicode(64)]);
+
+    finally
+      LRTXData.Free;
+    end;
   end;
 end;
 
