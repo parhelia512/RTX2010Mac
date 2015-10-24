@@ -366,6 +366,12 @@ object frm_RTXPacket: Tfrm_RTXPacket
     object N0C011: TMenuItem
       Action = act_msg_0C01
     end
+    object N0C021: TMenuItem
+      Action = act_msg_0C02
+    end
+    object N0C022: TMenuItem
+      Action = act_msg_0C02_recv
+    end
   end
   object actlst1: TActionList
     Left = 464
@@ -412,13 +418,19 @@ object frm_RTXPacket: Tfrm_RTXPacket
       OnExecute = act_LoadBufferExecute
     end
     object act_msg_0C00: TAction
-      Caption = #22788#29702'0C00'#28040#24687
+      Caption = #22788#29702#21457#36865#30340'0C00'#28040#24687
+      OnExecute = act_msg_0C00Execute
+      OnUpdate = act_msg_0C00Update
     end
     object act_msg_0C01: TAction
-      Caption = #22788#29702'0C01'#28040#24687
+      Caption = #22788#29702#25910#21040#30340'0C01'#28040#24687
+      OnExecute = act_msg_0C01Execute
+      OnUpdate = act_msg_0C01Update
     end
     object act_msg_0C02: TAction
-      Caption = #22788#29702'0C02'
+      Caption = #22788#29702#21457#36865#30340'0C02'#28040#24687
+      OnExecute = act_msg_0C02Execute
+      OnUpdate = act_msg_0C02Update
     end
     object act_CopyPacketData: TAction
       Caption = #22797#21046#23436#25972#25968#25454#21253'(HEX)'
@@ -429,6 +441,11 @@ object frm_RTXPacket: Tfrm_RTXPacket
       Caption = #22797#21046#20027#20307#25968#25454#21253'(HEX)'
       OnExecute = act_CopyPacketBodyDataExecute
       OnUpdate = act_CopyPacketDataUpdate
+    end
+    object act_msg_0C02_recv: TAction
+      Caption = #22788#29702#25910#21040#30340'0C02'#28040#24687
+      OnExecute = act_msg_0C02_recvExecute
+      OnUpdate = act_msg_0C02_recvUpdate
     end
   end
   object pm_HexEditor: TPopupMenu

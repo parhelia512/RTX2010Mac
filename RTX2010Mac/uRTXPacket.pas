@@ -804,7 +804,7 @@ begin
           LRTXStream.WriteUnicode(FUserName);
           LRTXStream.WriteByte(0);
           LRTXStream.WriteUnicode(ATo);
-          LRTXStream.WriteWord($01A8); //未知
+          LRTXStream.WriteWord(Random(65565)); //未知，分析像个随机数
           LRTXStream.WriteUnicode2(LRTXCData.XML);
           WritePacket(CMD_0C00, LRTXStream.GetBytes, FSessionKey, False);
         finally

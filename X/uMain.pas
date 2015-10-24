@@ -4,6 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.DateUtils,
   System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.ExtCtrls,
   Vcl.StdCtrls, Winapi.TlHelp32, Winapi.ShellAPI, Vcl.Menus,
@@ -73,6 +74,9 @@ type
     HEX1: TMenuItem;
     HEX2: TMenuItem;
     HEX3: TMenuItem;
+    N0C021: TMenuItem;
+    act_msg_0C02_recv: TAction;
+    N0C022: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure btn_refprocessClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -95,6 +99,14 @@ type
     procedure act_CopyPacketDataUpdate(Sender: TObject);
     procedure act_CopyPacketDataExecute(Sender: TObject);
     procedure act_CopyPacketBodyDataExecute(Sender: TObject);
+    procedure act_msg_0C00Execute(Sender: TObject);
+    procedure act_msg_0C00Update(Sender: TObject);
+    procedure act_msg_0C01Execute(Sender: TObject);
+    procedure act_msg_0C01Update(Sender: TObject);
+    procedure act_msg_0C02Execute(Sender: TObject);
+    procedure act_msg_0C02Update(Sender: TObject);
+    procedure act_msg_0C02_recvUpdate(Sender: TObject);
+    procedure act_msg_0C02_recvExecute(Sender: TObject);
   private
     FHandle: THandle;
     FPid: THandle;
@@ -113,6 +125,11 @@ type
     procedure UnjectDll;
     procedure MakeCommentFile;
     procedure AddToListView(AItem: TRTXDataRec);
+    procedure AddMemoStr(const fmt: string; args: array of const);
+    procedure ParseCurrent0C00Send;
+    procedure ParseCurrent0C01Recv;
+    procedure ParseCurrent0C02Send;
+    procedure ParseCurrent0C02Recv;
   public
     { Public declarations }
   end;
@@ -123,6 +140,35 @@ var
 implementation
 
 {$R *.dfm}
+
+(*
+080D 包发送 应该是要求会话啥的
+01 00 02 00 00 03 E9 00 00 03 EB
+01 //标识吧
+00 02 //会话人数
+00 00 03 E9 // 会话者id
+00 00 03 EB // 会话者id
+
+040F 包发送
+00 01 0C 74 00 65 00 73 00 74 00 33 00 00 00
+00 01 // 1个?
+0C  //长度
+74 00 65 00 73 00 74 00 33 00 // test3
+00 00 字符结束
+
+0C00 包收到
+解密出来为02
+
+0800 包发送 不知道是什么
+02 00 A8 C0 02 00 A8 C0 54 59
+
+0905 包发送
+01
+
+090B 包发送
+01
+
+*)
 
 function Passkey2(APassword: string): TBytes;
 {$IF Defined(MSWINDOWS) and not Defined(DelphiXE8)}
@@ -262,6 +308,54 @@ begin
   TAction(Sender).Enabled := FPackets.Count > 0;
 end;
 
+procedure Tfrm_RTXPacket.act_msg_0C00Execute(Sender: TObject);
+begin
+  ParseCurrent0C00Send;
+end;
+
+procedure Tfrm_RTXPacket.act_msg_0C00Update(Sender: TObject);
+begin
+ TAction(Sender).Enabled :=  (lv1.ItemIndex <> -1) and
+                             FPackets[lv1.ItemIndex].IsSend and
+                             (FPackets[lv1.ItemIndex].Cmd = $0C00);
+end;
+
+procedure Tfrm_RTXPacket.act_msg_0C01Execute(Sender: TObject);
+begin
+  ParseCurrent0C01Recv;
+end;
+
+procedure Tfrm_RTXPacket.act_msg_0C01Update(Sender: TObject);
+begin
+  TAction(Sender).Enabled :=  (lv1.ItemIndex <> -1) and
+                              not FPackets[lv1.ItemIndex].IsSend and
+                              (FPackets[lv1.ItemIndex].Cmd = $0C01);
+end;
+
+procedure Tfrm_RTXPacket.act_msg_0C02Execute(Sender: TObject);
+begin
+  ParseCurrent0C02Send;
+end;
+
+procedure Tfrm_RTXPacket.act_msg_0C02Update(Sender: TObject);
+begin
+  TAction(Sender).Enabled :=  (lv1.ItemIndex <> -1) and
+                              FPackets[lv1.ItemIndex].IsSend and
+                              (FPackets[lv1.ItemIndex].Cmd = $0C02);
+end;
+
+procedure Tfrm_RTXPacket.act_msg_0C02_recvExecute(Sender: TObject);
+begin
+  ParseCurrent0C02Recv;
+end;
+
+procedure Tfrm_RTXPacket.act_msg_0C02_recvUpdate(Sender: TObject);
+begin
+  TAction(Sender).Enabled :=  (lv1.ItemIndex <> -1) and
+                              not FPackets[lv1.ItemIndex].IsSend and
+                              (FPackets[lv1.ItemIndex].Cmd = $0C02);
+end;
+
 procedure Tfrm_RTXPacket.act_SaveBufferExecute(Sender: TObject);
 var
   LFile: TBufferFile;
@@ -300,6 +394,11 @@ begin
         stat1.Panels.Items[0].Text := 'SessionKey解密失败！';
     end;
   end;
+end;
+
+procedure Tfrm_RTXPacket.AddMemoStr(const fmt: string; args: array of const);
+begin
+  mmo1.Lines.Add(Format(fmt, args));
 end;
 
 procedure Tfrm_RTXPacket.AddToListView(AItem: TRTXDataRec);
@@ -620,6 +719,125 @@ begin
     end;
   finally
     LFile.Free;
+  end;
+end;
+
+procedure Tfrm_RTXPacket.ParseCurrent0C00Send;
+var
+  LRTXData: TRTXStream;
+  LLong: Cardinal;
+  LDe: TBytes;
+begin
+  if lv1.ItemIndex <> -1 then
+  begin
+    LDe := QQTEADeCrypt(FPackets[lv1.ItemIndex].Data, FSessionKey);
+    if LDe = nil then Exit;
+    LRTXData := TRTXStream.Create(LDe);
+    try
+      mmo1.Clear;
+      AddMemoStr('%.8x // 4byte', [LRTXData.ReadCardinal]);
+      LLong := LRTXData.ReadCardinal;
+      AddMemoStr('%.8x // 4byte timestamp  %s', [LLong,  DateTimeToStr(UnixToDateTime(LLong))]);
+      AddMemoStr('%s // imtype1', [LRTXData.ReadUnicode]);
+      AddMemoStr('%.2x // 0', [LRTXData.ReadByte]);
+      AddMemoStr('%s // imtype2', [LRTXData.ReadUnicode]);
+      AddMemoStr('%s // user', [LRTXData.ReadUnicode]);
+      AddMemoStr('%.2x // 0', [LRTXData.ReadByte]);
+      AddMemoStr('%s // to user', [LRTXData.ReadUnicode]);
+      AddMemoStr('%.4x // 未知，也许是个随机数吧', [LRTXData.ReadWord]);
+      AddMemoStr('------------xml  body', []);
+      AddMemoStr('%s', [LRTXData.ReadUnicode2]);
+    finally
+      LRTXData.Free;
+    end;
+  end;
+end;
+
+procedure Tfrm_RTXPacket.ParseCurrent0C01Recv;
+var
+  LRTXData: TRTXStream;
+  LDe: TBytes;
+begin
+  if lv1.ItemIndex <> -1 then
+  begin
+    LDe := QQTEADeCrypt(FPackets[lv1.ItemIndex].Data, FSessionKey);
+    if LDe = nil then Exit;
+    LRTXData := TRTXStream.Create(LDe);
+    try
+      mmo1.Clear;
+      AddMemoStr('%.4x // 2byte  imId', [LRTXData.ReadWord]);
+      AddMemoStr('%.4x // 2byte  不知道什么', [LRTXData.ReadWord]);
+      AddMemoStr('%.8x // 4byte  不知道什么', [LRTXData.ReadCardinal]);
+      AddMemoStr('%.8x // 4byte  不知道什么', [LRTXData.ReadCardinal]);
+      AddMemoStr('%.8x // 4byte  不知道什么', [LRTXData.ReadCardinal]);
+      AddMemoStr('%s // imType1', [LRTXData.ReadUnicode]);
+      AddMemoStr('%.2x // 0', [LRTXData.ReadByte]);
+      AddMemoStr('%s // imType2', [LRTXData.ReadUnicode]);
+      AddMemoStr('%s // From', [LRTXData.ReadUnicode]);
+      AddMemoStr('%.2x // 0', [LRTXData.ReadByte]);
+      AddMemoStr('%s // To', [LRTXData.ReadUnicode]);
+      AddMemoStr('%.4x // 未知，也许是个随机数吧', [LRTXData.ReadWord]);
+      AddMemoStr('------------xml  body', []);
+      AddMemoStr('%s', [LRTXData.ReadUnicode2]);
+    finally
+      LRTXData.Free;
+    end;
+  end;
+end;
+
+procedure Tfrm_RTXPacket.ParseCurrent0C02Recv;
+var
+  LRTXData: TRTXStream;
+  LDe: TBytes;
+begin
+  if lv1.ItemIndex <> -1 then
+  begin
+    LDe := QQTEADeCrypt(FPackets[lv1.ItemIndex].Data, FSessionKey);
+    if LDe = nil then Exit;
+    LRTXData := TRTXStream.Create(LDe);
+    try
+      mmo1.Clear;
+      AddMemoStr('%.2x // 1byte 未知', [LRTXData.ReadByte]);
+      AddMemoStr('%.4x // 2byte 难道是imId???', [LRTXData.ReadWord]);
+      AddMemoStr('%s // imType1', [LRTXData.ReadUnicode]);
+      AddMemoStr('%.2x // 0', [LRTXData.ReadByte]);
+      AddMemoStr('%s // imType2', [LRTXData.ReadUnicode]);
+      AddMemoStr('%s // To', [LRTXData.ReadUnicode]);
+      AddMemoStr('%s // From', [LRTXData.ReadUnicode]);
+      AddMemoStr('%.2x // 0', [LRTXData.ReadByte]);
+      AddMemoStr('%s // msg', [LRTXData.ReadUnicode]);
+    finally
+      LRTXData.Free;
+    end;
+  end;
+end;
+
+procedure Tfrm_RTXPacket.ParseCurrent0C02Send;
+var
+  LRTXData: TRTXStream;
+  LDe: TBytes;
+begin
+  if lv1.ItemIndex <> -1 then
+  begin
+    LDe := QQTEADeCrypt(FPackets[lv1.ItemIndex].Data, FSessionKey);
+    if LDe = nil then Exit;
+    LRTXData := TRTXStream.Create(LDe);
+    try
+      mmo1.Clear;
+      AddMemoStr('%.8x // 4byte', [LRTXData.ReadCardinal]);
+      AddMemoStr('%.4x // 2byte  0', [LRTXData.ReadWord]);
+      AddMemoStr('%.2x // 1byte  1', [LRTXData.ReadByte]);
+      AddMemoStr('%.4x // 2byte  imId', [LRTXData.ReadWord]);
+      AddMemoStr('%s // imType1', [LRTXData.ReadUnicode]);
+      AddMemoStr('%.2x // 0', [LRTXData.ReadByte]);
+      AddMemoStr('%s // imType2', [LRTXData.ReadUnicode]);
+      AddMemoStr('%s // To', [LRTXData.ReadUnicode]);
+      AddMemoStr('%s // From', [LRTXData.ReadUnicode]);
+      AddMemoStr('%.2x // 0', [LRTXData.ReadByte]);
+      AddMemoStr('%s // msg', [LRTXData.ReadUnicode]);
+    finally
+      LRTXData.Free;
+    end;
   end;
 end;
 
