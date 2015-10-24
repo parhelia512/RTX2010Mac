@@ -19,7 +19,8 @@ uses
   uRTXMessageView in 'uRTXMessageView.pas',
   uSessionFrame in 'uSessionFrame.pas' {fra_Session: TFrame},
   udm_Common in 'udm_Common.pas' {dm_Common: TDataModule},
-  FMX.Consts in 'FMX.Consts.pas';
+  FMX.Consts in 'FMX.Consts.pas',
+  uRTXPacketType in 'uRTXPacketType.pas';
 
 {$R *.res}
 

@@ -35,57 +35,11 @@ uses
   uRTXPacketRWriter,
   QQTEA,
   StreamRWriter,
-  uRTXXMLData;
+  uRTXXMLData,
+  uRTXPacketType;
 
 type
-  /// <summary>
-  ///   RTX封包数据头
-  /// </summary>
-  TRTXDataHead = packed record
-    Head: Byte;
-    Len: Word;
-    Version: Word;
-    Cmd: Word;
-    Seq: Word;
-    Uin: Cardinal;
-  public
-    constructor Create(ALen, AVersion, ACmd, ASeq: Word; AUin: Cardinal);
-  end;
 
-  /// <summary>
-  ///   一个会话记录
-  /// </summary>
-  TRTXSession = record
-    Key: string;
-    Receiver: string;
-    Title: string;
-    Sender: string;
-    Initiator: string;
-    Identifier: string;
-    // 额外的, 理论上不属于会话
-    Cmd : string;
-    im_message_id : string;
-  public
-    constructor Create(const AKey, AReceiver, ATitle, ASender, AInitiator, AIdentifier: string);
-  end;
-
-
-  /// <summary>
-  ///   0离线了, 1在线, 2离开状态
-  /// </summary>
-  TRTXStatusType = (rstOffline, rstOnline, rstAway);
-
-  /// <summary>
-  ///   状态改变
-  /// </summary>
-  TRTXStatusRec = record
-    Id: Integer;
-    Status: TRTXStatusType;
-  public
-    constructor Create(AId: Integer; AStatus: TRTXStatusType);
-  end;
-
-  TRTXStatusList = class(TList<TRTXStatusRec>);
 
   TRTXErrorEvent = procedure(Sender: TObject; const AError: string; ACode: Integer) of object;
   TRTXIMMessageEvent = procedure(Sender: TObject; const AFrom, ATo, ABody: string) of object;
@@ -127,6 +81,10 @@ type
       ///   貌似是状态改变的通知包
       /// </summary>
       CMD_080E = $080E;
+      /// <summary>
+      ///   获取用户信息 $0405
+      /// </summary>
+      CMD_0405 = $0405;
   private
     FOnError: TRTXErrorEvent;
     FOnIMMessage: TRTXIMMessageEvent;
@@ -140,7 +98,7 @@ type
     /// <summary>
     ///   聊天会话, Key=Key, Value=Session GUID
     /// </summary>
-    FSessions: TDictionary<string, TRTXSession>;
+    FSessions: TRTXSesions;
     /// <summary>
     ///   保存发送者对应的KEY
     /// </summary>
@@ -178,19 +136,32 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function ProcessData: Boolean;
-    procedure Process_0400(Data: TBytes);
-    procedure Process_0401(Data: TBytes; ALen: Integer);
-    procedure Process_0C01(Data: TBytes);
-    procedure Process_0C00(Data: TBytes);
-    procedure Process_0C02(Data: TBytes);
-    procedure Process_0805(Data: TBytes); // keeplive
-    procedure Process_080E(Data: TBytes); // status
-    procedure Keeplive;
+    procedure Process_0400_TouchReply(Data: TBytes);
+    procedure Process_0401_VerifyReply(Data: TBytes; ALen: Integer);
+    procedure Process_0C01_RecvIMMsg(Data: TBytes);
+    procedure Process_0C00_SendIMMsgReply(Data: TBytes);
+    procedure Process_0C02_RecvMsgReply(Data: TBytes);
+    procedure Process_0805_Keeplive(Data: TBytes); // keeplive
+    procedure Process_080E_StatusChanged(Data: TBytes); // status
+    procedure Process_0405_MemberInfo(Data: TBytes);
     procedure Process_Unknow(Data: TBytes; ACmd: Integer);
+
+    procedure Keeplive;
+    procedure Send_0405_GetMemberInfo(const AUserName: string);
+    procedure Send_0C02_RecvMsgReplay(AImId: Word; const AImTyp1, AImTyp2, ATo, AFrom: string);
+
     procedure InitUserInfo(const AUserName, APassword: string);
     procedure Login;
     procedure SendIMMessage(const ATo, AMsg: string; AFont: TRTXMsgFontAttr);
+
+    /// <summary>
+    ///   发送一个新建会话的命令：发送者，接收者，创始者
+    /// </summary>
+    procedure Send_CreateNewSession(const ASender, AReceiver, Initiator: string);
+
     procedure DeleteSession(const AKey: string);
+  public
+    property UserName: string read FUserName;
   published
     property Socket: {$IFDEF USEIDTCP}TIdTCPClient{$ELSE}TClientSocket{$ENDIF} read FSocket write SetSocket;
     property OnIMMsgStatus: TRTXIMMsgStatusEvent read FOnIMMsgStatus write FOnIMMsgStatus;
@@ -215,21 +186,6 @@ uses
 
 
 
-
-{ TRTXDataHead }
-
-constructor TRTXDataHead.Create(ALen, AVersion, ACmd, ASeq: Word;
-  AUin: Cardinal);
-begin
-  Self.Head := $02;
-  Self.Len := ALen;
-  Self.Version := AVersion;
-  Self.Cmd := ACmd;
-  Self.Seq := ASeq;
-  Self.Uin := AUin;
-end;
-
-
 { TRTXPacket }
 
 constructor TRTXPacket.Create(AOwner: TComponent);
@@ -237,7 +193,7 @@ begin
   inherited Create(AOwner);
   FNextSeq := $0E55;
   FUID := 0;
-  FSessions := TDictionary<string, TRTXSession>.Create;
+  FSessions := TRTXSesions.Create;
   FSessionSenders := TDictionary<string, string>.Create;
 end;
 
@@ -344,7 +300,7 @@ begin
     FSessions.AddOrSetValue(LSession.Key, LSession);
     if not LSession.Sender.IsEmpty then
       FSessionSenders.AddOrSetValue(LSession.Sender, LSession.Key);
-    
+
     // 对方打开会话窗口，要求会话目标初始窗口
     {if LSession.Cmd.Equals('QueryLoginMode') then
     begin
@@ -467,19 +423,21 @@ begin
 
         case LRTXHead.Cmd of
           CMD_0400 :
-            Process_0400(LData);
+            Process_0400_TouchReply(LData);
           CMD_0401 :
-            Process_0401(LData, LRTXHead.Len);
+            Process_0401_VerifyReply(LData, LRTXHead.Len);
           CMD_0C01 :
-            Process_0C01(LData);
+            Process_0C01_RecvIMMsg(LData);
           CMD_0C00 :
-            Process_0C00(LData);
-          CMD_0C02 : 
-            Process_0C02(LData);
+            Process_0C00_SendIMMsgReply(LData);
+          CMD_0C02 :
+            Process_0C02_RecvMsgReply(LData);
           CMD_0805 :
-            Process_0805(LData);
+            Process_0805_Keeplive(LData);
           CMD_080E :
-            Process_080E(LData);
+            Process_080E_StatusChanged(LData);
+          CMD_0405 :
+            Process_0405_MemberInfo(LData);
         else
           Process_Unknow(LData, LRTXHead.Cmd);
         end;
@@ -494,7 +452,7 @@ begin
   end;
 end;
 
-procedure TRTXPacket.Process_0400(Data: TBytes);
+procedure TRTXPacket.Process_0400_TouchReply(Data: TBytes);
 var
   LRTXStream, LRTXTemp: TRTXStream;
   LStatus: Byte;
@@ -549,7 +507,7 @@ begin
   end;
 end;
 
-procedure TRTXPacket.Process_0401(Data: TBytes; ALen: Integer);
+procedure TRTXPacket.Process_0401_VerifyReply(Data: TBytes; ALen: Integer);
 var
   LStatus: Byte;
   LRaw, LTEADeData: TBytes;
@@ -572,7 +530,6 @@ begin
       try
         FUID := LRTXData.ReadCardinal;
         FSessionKey := LRTXData.ReadBytes($10);
-        //PrintBytes(FSessionKey, 'LoginOK: sessionKey');
         FIsLogin := True;
         SendLoginResult(1);
         Keeplive;
@@ -592,7 +549,39 @@ begin
   end;
 end;
 
-procedure TRTXPacket.Process_0805(Data: TBytes);
+procedure TRTXPacket.Process_0405_MemberInfo(Data: TBytes);
+var
+  LRTXData: TRTXStream;
+  LDe: TBytes;
+  LInfo: TRTXMemberInfo;
+begin
+  DBG('Process_0405_MemberInfo');
+  LDe := QQTEADeCrypt(Data, FSessionKey);
+  if LDe = nil then Exit;
+  LRTXData := TRTXStream.Create(LDe);
+  try
+    if LRTXData.ReadByte = 0 then
+    begin
+      FillChar(LInfo, SizeOf(TRTXMemberInfo), #0);
+      // 66byte的实际应该是64，后面为0所以一起读了
+      LInfo.UserName := LRTXData.ReadUnicode(66);
+      LInfo.UID := LRTXData.ReadWord;
+      LInfo.UserName2 := LRTXData.ReadUnicode(64);
+      LInfo.NickName := LRTXData.ReadUnicode(66);
+      // 有个7E，最后还有2字节不知道是什么，还没具体看过
+      if LRTXData.ReadByte = $7E then
+      begin
+        LInfo.PhoneNum1 := LRTXData.ReadUnicode(64);
+        LInfo.PhoneNum2 := LRTXData.ReadUnicode(64);
+        Linfo.Email := LRTXData.ReadUnicode(64);
+      end;
+    end;
+  finally
+    LRTXData.Free;
+  end;
+end;
+
+procedure TRTXPacket.Process_0805_Keeplive(Data: TBytes);
 var
   LDe: TBytes;
 begin
@@ -601,7 +590,7 @@ begin
   DBG('Process_0805 Text=' + StringOf(LDe));
 end;
 
-procedure TRTXPacket.Process_080E(Data: TBytes);
+procedure TRTXPacket.Process_080E_StatusChanged(Data: TBytes);
 var
   LDe: TBytes;
   LStatus: TRTXStatusList;
@@ -640,11 +629,9 @@ begin
       LRTXData.Free;
     end;
   end;
-//  PrintBytes(LDe, 'TEADeCrypt Process_080E');
-//  DBG('Process_080E Text=' + StringOf(LDe));
 end;
 
-procedure TRTXPacket.Process_0C00(Data: TBytes);
+procedure TRTXPacket.Process_0C00_SendIMMsgReply(Data: TBytes);
 var
   LTEADeData: TBytes;
 begin
@@ -659,7 +646,7 @@ begin
   else DBG('send msg reply decrypt data error.');
 end;
 
-procedure TRTXPacket.Process_0C01(Data: TBytes);
+procedure TRTXPacket.Process_0C01_RecvIMMsg(Data: TBytes);
 var
   LimId: Cardinal;
   LTEADeData: TBytes;
@@ -688,21 +675,8 @@ begin
       DBG(LBody);
       DBG('---------------------------------------Body End--------------------------');
 
-      LRTXData.Clear;
-      //LRTXData.WriteHexBytes('00 00 00 00 00 00 01');
-      LRTXData.WriteCardinal(0);
-      LRTXData.WriteWord(0);
-      LRTXData.WriteByte(1);
-      LRTXData.WriteWord(LimId);
-      LRTXData.WriteUnicode(LImType);
-      LRTXData.WriteByte(0);
-      LRTXData.WriteUnicode(LImType2);
-      LRTXData.WriteUnicode(LTo);
-      LRTXData.WriteUnicode(LFrom);
-      LRTXData.WriteByte(0);
-      LRTXData.WriteUnicode('OK');
-      //LRTXData.WriteHexBytes('00 06 4F 00 4B 00 00 00');
-      WritePacket(CMD_0C02, LRTXData.GetBytes, FSessionKey, False);
+      Send_0C02_RecvMsgReplay(LimId, LImType, LImType2, LTo, LFrom);
+
 
       // 处理数据，早晚我要换掉这自带的xml
       TThread.Synchronize(nil,
@@ -714,7 +688,7 @@ begin
 //      TThread.Synchronize(nil,
 //        procedure
 //        begin
-//          //Self.SendIMMessage(LFrom, '收到啦 ~ ' + DateTimeToStr(Now));
+          Self.SendIMMessage(LFrom, '收到啦 ~ ' + DateTimeToStr(Now));
 //        end);
 
     finally
@@ -723,7 +697,7 @@ begin
   end;
 end;
 
-procedure TRTXPacket.Process_0C02(Data: TBytes);
+procedure TRTXPacket.Process_0C02_RecvMsgReply(Data: TBytes);
 var
   LDe: TBytes;
 begin
@@ -755,6 +729,49 @@ procedure TRTXPacket.SendLoginResult(AStatus: Integer);
 begin
   if Assigned(FOnLoginResult) then
     FOnLoginResult(Self, AStatus);
+end;
+
+procedure TRTXPacket.Send_0405_GetMemberInfo(const AUserName: string);
+var
+  LData, LNameBytes: TBytes;
+begin
+  if AUserName <> '' then
+  begin
+    SetLength(LData, 64);
+    LNameBytes := TEncoding.Unicode.GetBytes(AUserName);
+    Move(LNameBytes[0], LData[0], IfThen(LNameBytes.Length <= LData.Length, LNameBytes.Length, LData.Length));
+    WritePacket(CMD_0405, LData, FSessionKey, False);
+  end;
+end;
+
+procedure TRTXPacket.Send_0C02_RecvMsgReplay(AImId: Word; const AImTyp1,
+  AImTyp2, ATo, AFrom: string);
+var
+  LRTXData: TRTXStream;
+begin
+  LRTXData := TRTXStream.Create(True);
+  try
+    LRTXData.WriteCardinal(0);
+    LRTXData.WriteWord(0);
+    LRTXData.WriteByte(1);
+    LRTXData.WriteWord(AImId);
+    LRTXData.WriteUnicode(AImTyp1);
+    LRTXData.WriteByte(0);
+    LRTXData.WriteUnicode(AImTyp2);
+    LRTXData.WriteUnicode(ATo);
+    LRTXData.WriteUnicode(AFrom);
+    LRTXData.WriteByte(0);
+    LRTXData.WriteUnicode('OK');
+    WritePacket(CMD_0C02, LRTXData.GetBytes, FSessionKey, False);
+  finally
+    LRTXData.Free;
+  end;
+end;
+
+procedure TRTXPacket.Send_CreateNewSession(const ASender, AReceiver,
+  Initiator: string);
+begin
+
 end;
 
 procedure TRTXPacket.SendError(const AErr: string; ACode: Integer);
@@ -873,28 +890,7 @@ begin
 
 end;
 
-{ TRTXSession }
 
-constructor TRTXSession.Create(const AKey, AReceiver, ATitle, ASender,
-  AInitiator, AIdentifier: string);
-begin
-  Self.Key := AKey;
-  Self.Receiver := AReceiver;
-  Self.Title := ATitle;
-  Self.Sender := ASender;
-  Self.Initiator := AInitiator;
-  Self.Identifier := AIdentifier;
-  Self.Cmd := '';
-  Self.im_message_id := '';
-end;
-
-{ TStatusRec }
-
-constructor TRTXStatusRec.Create(AId: Integer; AStatus: TRTXStatusType);
-begin
-  Id := AId;
-  Status := AStatus;
-end;
 
 end.
 
