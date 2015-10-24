@@ -256,9 +256,7 @@ end;
 
 function TRTXPacket.GetTimestamp: Cardinal;
 begin
-  // √≤À∆’‚∏ˆbug–ﬁ∏¥¡À
-  //Result := System.DateUtils.DateTimeToUnix(IncHour(Now, 8));
-  Result := System.DateUtils.DateTimeToUnix(Now);
+  Result := System.DateUtils.DateTimeToUnix(Now) - 28800;
 end;
 
 procedure TRTXPacket.InitUserInfo(const AUserName, APassword: string);

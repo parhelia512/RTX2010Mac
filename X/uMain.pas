@@ -130,6 +130,9 @@ type
     procedure ParseCurrent0C01Recv;
     procedure ParseCurrent0C02Send;
     procedure ParseCurrent0C02Recv;
+
+    procedure GetTouchKey(AData: TRTXDataRec);
+    procedure GetSessionKey(AData: TRTXDataRec);
   public
     { Public declarations }
   end;
@@ -364,7 +367,7 @@ begin
   try
     LFile.SessionKey := FSessionKey;
     LFile.SaveToFile(Format('%s%s.rtxbuf', [ExtractFilePath(ParamStr(0))
-     ,FormatDateTime('YYYYMMMDDhhmmss', Now)]));
+     ,FormatDateTime('YYYYMMDDhhmmss', Now)]));
   finally
     LFile.Free;
   end;
@@ -426,42 +429,21 @@ end;
 procedure Tfrm_RTXPacket.btn_GetAllKeysClick(Sender: TObject);
 var
   LData: TRTXDataRec;
-  LRawData: TBytes;
-  LTEADeData: TBytes;
+  I: Integer;
 begin
+  I := 0;
   for LData in FPackets do
   begin
     if (LData.Cmd = $400) and LData.IsSend  then
     begin
-      if LData.Data.Length > $10 then
-      begin
-        SetLength(FTouchKey, $10);
-        Move(LData.Data[0], FTouchKey[0], FTouchKey.Length);
-        edt_TouchKey.Text := FTouchKey.ToHexString;
-      end;
+      GetTouchKey(LData);
+      Inc(I);
     end else if (LData.Cmd = $401) and (not LData.IsSend) then
     begin
-      SetLength(LRawData, LData.Len - $E - 1);
-      Move(LData.Data[1], LRawData[0], LRawData.Length);
-
-      LTEADeData := QQTEADeCrypt(LRawData, FPassKey2);
-      if LTEADeData <> nil then
-      begin
-        SetLength(FSessionKey, $10);
-        Move(LTEADeData[4], FSessionKey[0], $10);
-        edt_SessionKey.Text := FSessionKey.ToHexString;
-      end else
-      begin
-        OutputDebugString('PassKey2 decrypt faild.');
-        LTEADeData := QQTEADeCrypt(LRawData, FNameKey);
-        if LTEADeData <> nil then
-        begin
-          SetLength(FSessionKey, $10);
-          Move(LTEADeData[4], FSessionKey[0], $10);
-          edt_SessionKey.Text := FSessionKey.ToHexString;
-        end else OutputDebugString('NameKey decrypt faild.');
-      end;
+      GetSessionKey(LData);
+      Inc(I);
     end;
+    if I >= 2 then Break;
   end;
 end;
 
@@ -509,6 +491,42 @@ begin
   if FHandle <> 0 then
     Closehandle(FHandle);
   FPackets.Free;
+end;
+
+procedure Tfrm_RTXPacket.GetSessionKey(AData: TRTXDataRec);
+var
+  LRawData: TBytes;
+  LTEADeData: TBytes;
+begin
+  SetLength(LRawData, AData.Len - $E - 1);
+  Move(AData.Data[1], LRawData[0], LRawData.Length);
+  LTEADeData := QQTEADeCrypt(LRawData, FPassKey2);
+  if LTEADeData <> nil then
+  begin
+    SetLength(FSessionKey, $10);
+    Move(LTEADeData[4], FSessionKey[0], $10);
+    edt_SessionKey.Text := FSessionKey.ToHexString;
+  end else
+  begin
+    OutputDebugString('PassKey2 decrypt faild.');
+    LTEADeData := QQTEADeCrypt(LRawData, FNameKey);
+    if LTEADeData <> nil then
+    begin
+      SetLength(FSessionKey, $10);
+      Move(LTEADeData[4], FSessionKey[0], $10);
+      edt_SessionKey.Text := FSessionKey.ToHexString;
+    end else OutputDebugString('NameKey decrypt faild.');
+  end;
+end;
+
+procedure Tfrm_RTXPacket.GetTouchKey(AData: TRTXDataRec);
+begin
+  if AData.Data.Length > $10 then
+  begin
+    SetLength(FTouchKey, $10);
+    Move(AData.Data[0], FTouchKey[0], FTouchKey.Length);
+    edt_TouchKey.Text := FTouchKey.ToHexString;
+  end;
 end;
 
 procedure Tfrm_RTXPacket.InjectDll;
@@ -757,6 +775,7 @@ procedure Tfrm_RTXPacket.ParseCurrent0C01Recv;
 var
   LRTXData: TRTXStream;
   LDe: TBytes;
+  LLong: Cardinal;
 begin
   if lv1.ItemIndex <> -1 then
   begin
@@ -769,7 +788,8 @@ begin
       AddMemoStr('%.4x // 2byte  不知道什么', [LRTXData.ReadWord]);
       AddMemoStr('%.8x // 4byte  不知道什么', [LRTXData.ReadCardinal]);
       AddMemoStr('%.8x // 4byte  不知道什么', [LRTXData.ReadCardinal]);
-      AddMemoStr('%.8x // 4byte  不知道什么', [LRTXData.ReadCardinal]);
+      LLong := LRTXData.ReadCardinal;
+      AddMemoStr('%.8x // 4byte  %s', [LLong, DateTimeToStr(IncHour(UnixToDateTime(LLong), 8))]);
       AddMemoStr('%s // imType1', [LRTXData.ReadUnicode]);
       AddMemoStr('%.2x // 0', [LRTXData.ReadByte]);
       AddMemoStr('%s // imType2', [LRTXData.ReadUnicode]);
@@ -899,6 +919,11 @@ begin
       LHead.STime := Now;
       FPackets.Add(LHead);
       AddToListView(LHead);
+
+      if (LHead.Cmd = $400) and LHead.IsSend  then
+        GetTouchKey(LHead)
+      else if (LHead.Cmd = $401) and (not LHead.IsSend) then
+        GetSessionKey(LHead);
     finally
       LData.Free;
     end;
