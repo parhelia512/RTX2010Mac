@@ -115,9 +115,9 @@ begin
         gSharePtr^.SPort := ntohs(TSockAddrIn(LName).sin_port);
       end;
     end;
-    LHead := GetPacketTempHead(@buf, len);
+    {LHead := GetPacketTempHead(@buf, len);
     // 0则不过滤
-   if gSharePtr^.FiterPort <> 0 then
+    if gSharePtr^.FiterPort <> 0 then
     begin
       // 有时候因为初始的问题会取得端口失败。。。
       if (gSharePtr^.DPort <> gSharePtr^.FiterPort) and
@@ -144,7 +144,7 @@ begin
     begin
       if gSharePtr^.FiterUin <> LHead.Uin then
          Exit;
-    end;
+    end;  }
 
     Move(buf, GetDataPtr^, len);
     SendMessage(gSharePtr^.hWd, FILE_MAP_RECV_MESSAGE, len, Integer(IsSend));
