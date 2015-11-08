@@ -11,11 +11,14 @@ uses
 type
   TSend = function(s: TSocket; const buf; len, flags: Integer): Integer; stdcall;
   TRecv = function(s: TSocket; var buf; len, flags: Integer): Integer; stdcall;
+  TConnect = function(s: TSocket; var name: TSockAddr; namelen: Integer): Integer; stdcall;
 
 var
   Oldsend: TSend;
   Oldrecv: TRecv;
+  OldConnect: TConnect;
   FHandle: THandle;
+  RTX8000PortSocket: TSocket;
 
 
 
@@ -151,6 +154,16 @@ begin
   end;
 end;
 
+function new_connect(s: TSocket; var name: TSockAddr; namelen: Integer): Integer; stdcall;
+begin
+  if RTX8000PortSocket = 0 then
+  begin
+    if ntohs(TSockAddrIn(name).sin_port) = gSharePtr^.CapturePort then
+      RTX8000PortSocket := s;
+  end;
+  Result := OldConnect(s, name, namelen);
+end;
+
 function new_send(s: TSocket; const buf; len, flags: Integer): Integer; stdcall;
 begin
   SendPacket(s, buf, len, True);
@@ -163,24 +176,51 @@ begin
   SendPacket(s, buf, len, False);
 end;
 
+/// <summary>
+///   远程调用的函数
+/// </summary>
+procedure SendRTXData(AData: Pointer); stdcall;
+var
+  LDataLen: Integer;
+begin
+  if AData <> nil then
+  begin
+    LDataLen := PInteger(AData)^;
+    if (LDataLen > 0) and (RTX8000PortSocket <> 0) then
+      new_send(RTX8000PortSocket, PByte(Cardinal(AData) + 4)^, LDataLen, 0);
+    OutputDebugString(PChar(Format('调用senddata函数, 数据长度：%d', [LDataLen])));
+  end;
+end;
+
 procedure RTXHookOn;
 begin
   OutputDebugString('RTXHookOn');
+  RTX8000PortSocket := 0;
   FHandle := OpenFileMapping(FILE_MAP_EXECUTE or FILE_MAP_READ or FILE_MAP_WRITE, False, 'global/rtxpacket/');
   if FHandle > 0 then
     gSharePtr := MapViewOfFile(FHandle, FILE_MAP_EXECUTE or FILE_MAP_READ or
       FILE_MAP_WRITE, 0, 0, 0);
-  HookProcInModule('ws2_32.dll', 'send', @new_send, @Oldsend);
-  HookProcInModule('ws2_32.dll', 'recv', @new_recv, @Oldrecv);
+  if gSharePtr <> nil then
+  begin
+    gSharePtr^.RemoteSendAddr := @SendRTXData;
+    HookProcInModule('ws2_32.dll', 'connect', @new_connect, @OldConnect);
+    HookProcInModule('ws2_32.dll', 'send', @new_send, @Oldsend);
+    HookProcInModule('ws2_32.dll', 'recv', @new_recv, @Oldrecv);
+  end;
 end;
 
 procedure RTXHookOff;
 begin
+  RTX8000PortSocket := 0;
   OutputDebugString('RTXHookOff');
   if FHandle <> 0 then
     Closehandle(FHandle);
-  UnHook(@Oldrecv);
-  UnHook(@Oldsend);
+  if gSharePtr <> nil then
+  begin
+    UnHook(@Oldrecv);
+    UnHook(@Oldsend);
+    UnHook(@OldConnect);
+  end;
 end;
 
 {$R *.res}

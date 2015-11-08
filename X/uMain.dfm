@@ -145,8 +145,8 @@ object frm_RTXPacket: Tfrm_RTXPacket
       OnClick = btn_StartClick
     end
     object btn_Stop: TButton
-      Left = 785
-      Top = 12
+      Left = 786
+      Top = 11
       Width = 75
       Height = 25
       Caption = #20572#27490
@@ -232,6 +232,15 @@ object frm_RTXPacket: Tfrm_RTXPacket
       Height = 25
       Action = act_SaveBuffer
       TabOrder = 6
+    end
+    object btn1: TButton
+      Left = 624
+      Top = 43
+      Width = 107
+      Height = 25
+      Caption = #27979#35797#36828#31243#35843#29992
+      TabOrder = 14
+      OnClick = btn1Click
     end
   end
   object pnl2: TPanel

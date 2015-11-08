@@ -27,6 +27,16 @@ type
     SPort: Word;
     DAddr: Cardinal;
     DPort: Word;
+
+    /// <summary>
+    ///   远程捕获的端口, 由调用注入dll传入
+    /// </summary>
+    CapturePort: Word;
+
+    /// <summary>
+    ///   提供给远程调用函数的地址
+    /// </summary>
+    RemoteSendAddr: Pointer;
   end;
 
   // 在包中获取，用来设置过滤的
@@ -56,6 +66,11 @@ type
     Data: TBytes;
     Tail: Byte;
   end;
+
+//  TRTXRemoteCallParams = packed record
+//    Len: Integer;
+//    Data: Pointer;
+//  end;
 
 var
   gSharePtr: PShareMemRec = nil;

@@ -79,6 +79,7 @@ type
     N0C022: TMenuItem;
     act_msg_0405_recv: TAction;
     N04051: TMenuItem;
+    btn1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure btn_refprocessClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -112,6 +113,7 @@ type
     procedure act_msg_0405_recvUpdate(Sender: TObject);
     procedure act_msg_0405_recvExecute(Sender: TObject);
     procedure act_hex_copyselUpdate(Sender: TObject);
+    procedure btn1Click(Sender: TObject);
   private
     FHandle: THandle;
     FPid: THandle;
@@ -128,6 +130,7 @@ type
     procedure ProcessRecv(var Msg: TMessage); message FILE_MAP_RECV_MESSAGE;
     procedure InjectDll;
     procedure UnjectDll;
+    procedure RemoteCallSendRTXData(ABytes: array of Byte);
     procedure MakeCommentFile;
     procedure AddToListView(AItem: TRTXDataRec);
     procedure AddMemoStr(const fmt: string; args: array of const);
@@ -460,6 +463,11 @@ begin
   LItem.SubItems.Add(AItem.Seq.ToHexString(4));
   LItem.SubItems.Add(AItem.Uin.ToString);
 
+end;
+
+procedure Tfrm_RTXPacket.btn1Click(Sender: TObject);
+begin
+  RemoteCallSendRTXData([$AB, $AC, $AD, $AE]);
 end;
 
 procedure Tfrm_RTXPacket.btn_GetAllKeysClick(Sender: TObject);
@@ -937,6 +945,10 @@ begin
     gSharePtr^.FiterPort := StrToIntDef(LStrs.Values['p'], 0);
     gSharePtr^.FiterUin := StrToIntDef(LStrs.Values['u'], 0);
     gSharePtr^.FiterVer := StrToIntDef(LStrs.Values['v'], 0);
+
+    // 暂时将这里的端口设置为过滤条件中的端口
+    gSharePtr^.CapturePort := gSharePtr^.FiterPort;
+
     OutputDebugString(PChar(Format('Ip=%.8x, Port=%d, Uin=%d, Ver=%.4x',
      [
        gSharePtr^.FiterIpAddress,
@@ -1007,6 +1019,7 @@ begin
   FSnapShotHandle := CreateToolhelp32SnapShot(TH32CS_SNAPPROCESS, 0);
   FProcessEntry32.dwSize := SizeOf(FProcessEntry32);
   ContinueLoop := Process32First(FSnapShotHandle, FProcessEntry32);
+  cbb_ProcessList.Clear;
   cbb_ProcessList.Items.BeginUpdate;
   while ContinueLoop do
   begin
@@ -1023,6 +1036,46 @@ begin
   if Tmp <> -1 then cbb_ProcessList.ItemIndex := Tmp;
   cbb_ProcessList.Items.EndUpdate;
   CloseHandle(FSnapShotHandle);
+end;
+
+procedure Tfrm_RTXPacket.RemoteCallSendRTXData(ABytes: array of Byte);
+var
+  hProcess: THandle;
+  RemoteDataAddr, pfnAddr: Pointer;
+  lpNumberOfBytesWritten: SIZE_T;
+  lpThreadId: DWORD;
+  RemoteThreadHandle: THandle;
+  LData: TBytes;
+  LDataLen: Integer;
+begin
+  if FPid <> 0 then
+  begin
+    hProcess := OpenProcess(PROCESS_ALL_ACCESS, False, FPid);
+    if hProcess > 0 then
+    begin
+      // 前4字节保存数据长度
+      SetLength(LData, Length(ABytes) + 4);
+      LDataLen := Length(ABytes);
+      Move(LDataLen, LData[0], SizeOf(Integer));
+      Move(ABytes[0], LData[4], Length(ABytes));
+
+      RemoteDataAddr := VirtualAllocEx(hProcess, nil, LData.Length, MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+      if WriteProcessMemory(hProcess, RemoteDataAddr, @LData[0], LData.Length, lpNumberOfBytesWritten) then
+      begin
+        pfnAddr := gSharePtr^.RemoteSendAddr;
+        if pfnAddr <> nil then
+        begin
+          RemoteThreadHandle := CreateRemoteThread(hProcess, nil, 0, pfnAddr, RemoteDataAddr, 0, lpThreadId);
+          if RemoteThreadHandle <> 0 then
+            WaitForSingleObject(RemoteThreadHandle, INFINITE);
+          CloseHandle(RemoteThreadHandle);
+        end;
+      end;
+      if RemoteDataAddr <> nil then
+        VirtualFreeEx(hProcess, RemoteDataAddr, 0, MEM_RELEASE);
+      CloseHandle(hProcess);
+    end;
+  end;
 end;
 
 procedure Tfrm_RTXPacket.UnjectDll;
